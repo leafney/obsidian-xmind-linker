@@ -7,6 +7,7 @@ import type { XMindViewerSettings } from './src/types';
 export default class XMindViewerPlugin extends Plugin {
   settings: XMindViewerSettings;
   thumbnailExtractor: ThumbnailExtractor;
+  private openedFiles: Map<string, WorkspaceLeaf> = new Map();
 
   async onload() {
     console.log('加载 XMind Viewer 插件');
@@ -125,7 +126,8 @@ export default class XMindViewerPlugin extends Plugin {
   ): Promise<void> {
     const embeds = element.querySelectorAll('span.internal-embed');
     
-    for (const embed of embeds) {
+    for (let i = 0; i < embeds.length; i++) {
+      const embed = embeds[i];
       const src = embed.getAttribute('src');
       if (src && src.endsWith('.xmind')) {
         await this.processXMindEmbed(embed as HTMLElement, src, context);
@@ -246,15 +248,46 @@ export default class XMindViewerPlugin extends Plugin {
    * 在查看器中打开 XMind 文件
    */
   private async openXMindInViewer(file: TFile): Promise<void> {
+    // 检查是否已经打开了这个文件
+    const existingLeaf = this.openedFiles.get(file.path);
+    if (existingLeaf && existingLeaf.view) {
+      // 如果已经打开，激活现有的标签页
+      this.app.workspace.setActiveLeaf(existingLeaf);
+      return;
+    }
+
+    // 创建新的标签页
     const leaf = this.app.workspace.getLeaf(false);
     await leaf.setViewState({
       type: XMIND_VIEW_TYPE,
       state: { file: file.path }
     });
 
+    // 记录打开的文件
+    this.openedFiles.set(file.path, leaf);
+
+    // 监听标签页关闭事件
+    this.registerEvent(
+      this.app.workspace.on('layout-change', () => {
+        // 清理已关闭的标签页
+        this.cleanupClosedTabs();
+      })
+    );
+
     const view = leaf.view as XMindView;
     if (view) {
       await view.setXMindFile(file);
+    }
+  }
+
+  /**
+   * 清理已关闭的标签页记录
+   */
+  private cleanupClosedTabs(): void {
+    for (const [filePath, leaf] of this.openedFiles.entries()) {
+      if (!leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) {
+        this.openedFiles.delete(filePath);
+      }
     }
   }
 
@@ -290,7 +323,10 @@ export default class XMindViewerPlugin extends Plugin {
   private async openInSystem(file: TFile): Promise<void> {
     try {
       const { shell } = require('electron');
-      const filePath = this.app.vault.adapter.getFullPath(file.path);
+      const filePath = (this.app.vault.adapter as any).path.join(
+        (this.app.vault.adapter as any).basePath, 
+        file.path
+      );
       await shell.openPath(filePath);
     } catch (error) {
       console.error('无法打开系统应用:', error);

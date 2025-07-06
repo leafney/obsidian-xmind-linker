@@ -58,7 +58,7 @@ build_plugin() {
     bun run build
     
     # 检查构建结果
-    if [[ ! -f "main.js" || ! -f "manifest.json" || ! -f "styles.css" ]]; then
+    if [[ ! -f "build/main.js" || ! -f "build/manifest.json" || ! -f "build/styles.css" ]]; then
         print_error "构建失败，缺少必要文件"
         exit 1
     fi
@@ -152,9 +152,9 @@ install_plugin() {
     mkdir -p "$plugin_dir"
     
     # 复制文件
-    cp main.js "$plugin_dir/"
-    cp manifest.json "$plugin_dir/"
-    cp styles.css "$plugin_dir/"
+    cp build/main.js "$plugin_dir/"
+    cp build/manifest.json "$plugin_dir/"
+    cp build/styles.css "$plugin_dir/"
     
     print_success "插件已安装到: $plugin_dir"
 }

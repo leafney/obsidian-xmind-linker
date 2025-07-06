@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "node esbuild.config.mjs production",
+    "build": "node esbuild.config.mjs production && cp manifest.json styles.css build/",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
     "test": "bun test"
   },
@@ -16,7 +16,7 @@
     "mindmap",
     "viewer"
   ],
-  "author": "Your Name",
+  "author": "Leafney",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^16.11.6",

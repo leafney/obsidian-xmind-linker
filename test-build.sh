@@ -174,7 +174,7 @@ build_plugin() {
 # 验证构建结果
 verify_build() {
     local missing_files=()
-    local required_files=("main.js" "manifest.json" "styles.css")
+    local required_files=("build/main.js" "build/manifest.json" "build/styles.css")
     
     for file in "${required_files[@]}"; do
         if [[ ! -f "$file" ]]; then
@@ -191,13 +191,13 @@ verify_build() {
     fi
     
     # 检查文件大小
-    local main_size=$(stat -c%s main.js 2>/dev/null || stat -f%z main.js 2>/dev/null || echo "0")
+    local main_size=$(stat -c%s build/main.js 2>/dev/null || stat -f%z build/main.js 2>/dev/null || echo "0")
     if [[ "$main_size" -lt 1000 ]]; then
-        print_warning "main.js 文件可能太小 (${main_size} bytes)"
+        print_warning "build/main.js 文件可能太小 (${main_size} bytes)"
     fi
     
     print_success "构建验证通过"
-    echo "  - main.js: ${main_size} bytes"
+    echo "  - build/main.js: ${main_size} bytes"
     echo "  - manifest.json: ✓"
     echo "  - styles.css: ✓"
     

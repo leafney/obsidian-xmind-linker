@@ -8,7 +8,12 @@ export class XMindView extends ItemView {
   private xmindFile: TFile | null = null;
   private settings: XMindViewerSettings;
   private viewerContainer: HTMLElement;
+  private contentContainer: HTMLElement;
   private viewer: any; // XMindEmbedViewer instance
+  private isLoading = false;
+  private loadingProgress = 0;
+  private static viewerLibLoaded = false;
+  private static viewerLibPromise: Promise<any> | null = null;
 
   constructor(leaf: WorkspaceLeaf, settings: XMindViewerSettings) {
     super(leaf);
@@ -38,6 +43,14 @@ export class XMindView extends ItemView {
     // 创建工具栏
     this.createToolbar();
 
+    // 创建内容容器
+    this.contentContainer = this.viewerContainer.createDiv({
+      cls: 'xmind-viewer-content'
+    });
+
+    // 预加载查看器库
+    this.preloadViewerLibrary();
+
     // 如果有文件，加载它
     if (this.xmindFile) {
       await this.loadXMindFile(this.xmindFile);
@@ -63,42 +76,87 @@ export class XMindView extends ItemView {
   }
 
   /**
+   * 预加载查看器库
+   */
+  private async preloadViewerLibrary(): Promise<void> {
+    if (!XMindView.viewerLibLoaded && !XMindView.viewerLibPromise) {
+      XMindView.viewerLibPromise = this.loadXMindEmbedViewer();
+    }
+  }
+
+  /**
    * 加载 XMind 文件
    */
   private async loadXMindFile(file: TFile): Promise<void> {
+    if (this.isLoading) return;
+    
     try {
+      this.isLoading = true;
+      
       // 显示加载状态
       this.showLoadingState();
 
+      // 更新窗口标题
+      this.updateTitle();
+
       // 读取文件
+      this.updateLoadingProgress('读取文件中...', 20);
       const buffer = await this.app.vault.adapter.readBinary(file.path);
       
       // 验证文件
+      this.updateLoadingProgress('验证文件格式...', 40);
       if (!(await XMindParser.isValidXMindFile(buffer))) {
         throw new Error('无效的 XMind 文件');
       }
 
-      // 动态导入 xmind-embed-viewer
-      const XMindEmbedViewer = await this.loadXMindEmbedViewer();
+      // 等待查看器库加载
+      this.updateLoadingProgress('加载查看器...', 60);
+      const XMindEmbedViewer = await this.getXMindEmbedViewer();
       
-      // 清空容器
-      this.viewerContainer.empty();
+      // 清空内容容器
+      this.contentContainer.empty();
       
       // 创建查看器
+      this.updateLoadingProgress('初始化查看器...', 80);
       this.viewer = new XMindEmbedViewer({
-        el: this.viewerContainer,
+        el: this.contentContainer,
         region: this.settings.defaultRegion
       });
 
       // 加载文件
+      this.updateLoadingProgress('渲染思维导图...', 90);
       await this.viewer.load(buffer);
 
       // 添加事件监听
       this.setupViewerEvents();
 
+      this.updateLoadingProgress('完成', 100);
+      
+      // 延迟一点再隐藏加载状态
+      setTimeout(() => {
+        this.hideLoadingState();
+      }, 300);
+
     } catch (error) {
       this.showErrorState(error.message);
+    } finally {
+      this.isLoading = false;
     }
+  }
+
+  /**
+   * 获取 XMind Embed Viewer (使用缓存)
+   */
+  private async getXMindEmbedViewer(): Promise<any> {
+    if (XMindView.viewerLibLoaded) {
+      return (window as any).XMindEmbedViewer;
+    }
+    
+    if (XMindView.viewerLibPromise) {
+      return await XMindView.viewerLibPromise;
+    }
+    
+    return await this.loadXMindEmbedViewer();
   }
 
   /**
@@ -106,12 +164,19 @@ export class XMindView extends ItemView {
    */
   private async loadXMindEmbedViewer(): Promise<any> {
     try {
+      // 检查是否已经加载
+      if ((window as any).XMindEmbedViewer) {
+        XMindView.viewerLibLoaded = true;
+        return (window as any).XMindEmbedViewer;
+      }
+
       // 尝试从 CDN 加载
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/xmind-embed-viewer/dist/umd/xmind-embed-viewer.js';
       
       return new Promise((resolve, reject) => {
         script.onload = () => {
+          XMindView.viewerLibLoaded = true;
           resolve((window as any).XMindEmbedViewer);
         };
         script.onerror = reject;
@@ -119,6 +184,41 @@ export class XMindView extends ItemView {
       });
     } catch (error) {
       throw new Error('无法加载 XMind 查看器库');
+    }
+  }
+
+  /**
+   * 更新窗口标题
+   */
+  private updateTitle(): void {
+    // 标题会自动通过 getDisplayText() 方法更新
+    // 这里不需要手动设置
+  }
+
+  /**
+   * 更新加载进度
+   */
+  private updateLoadingProgress(message: string, progress: number): void {
+    this.loadingProgress = progress;
+    const loadingEl = this.contentContainer.querySelector('.xmind-loading-text');
+    const progressBar = this.contentContainer.querySelector('.xmind-loading-progress-bar');
+    
+    if (loadingEl) {
+      loadingEl.textContent = message;
+    }
+    
+    if (progressBar) {
+      (progressBar as HTMLElement).style.width = `${progress}%`;
+    }
+  }
+
+  /**
+   * 隐藏加载状态
+   */
+  private hideLoadingState(): void {
+    const loadingEl = this.contentContainer.querySelector('.xmind-loading');
+    if (loadingEl) {
+      loadingEl.remove();
     }
   }
 
@@ -178,10 +278,30 @@ export class XMindView extends ItemView {
    * 显示加载状态
    */
   private showLoadingState(): void {
-    this.viewerContainer.empty();
-    this.viewerContainer.createDiv({
-      text: '正在加载 XMind 文件...',
+    this.contentContainer.empty();
+    
+    const loadingContainer = this.contentContainer.createDiv({
       cls: 'xmind-loading'
+    });
+    
+    // 加载动画
+    loadingContainer.createDiv({
+      cls: 'xmind-loading-spinner'
+    });
+    
+    // 加载文本
+    loadingContainer.createDiv({
+      text: '正在加载 XMind 文件...',
+      cls: 'xmind-loading-text'
+    });
+    
+    // 进度条
+    const progressContainer = loadingContainer.createDiv({
+      cls: 'xmind-loading-progress'
+    });
+    
+    progressContainer.createDiv({
+      cls: 'xmind-loading-progress-bar'
     });
   }
 
@@ -204,7 +324,10 @@ export class XMindView extends ItemView {
 
     try {
       const { shell } = require('electron');
-      const filePath = this.app.vault.adapter.getFullPath(this.xmindFile.path);
+      const filePath = (this.app.vault.adapter as any).path.join(
+        (this.app.vault.adapter as any).basePath, 
+        this.xmindFile.path
+      );
       await shell.openPath(filePath);
     } catch (error) {
       console.error('无法打开系统应用:', error);
