@@ -1,13 +1,15 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import type XMindLinkerPlugin from '../../main';
 import type { XMindViewerSettings } from '../types';
+import { i18n, type SupportedLanguage } from './i18n';
 
 export const DEFAULT_SETTINGS: XMindViewerSettings = {
   enableThumbnailExtraction: true,
   defaultRegion: 'global',
   showHoverTooltip: true,
   enableSystemIntegration: true,
-  thumbnailCacheDir: '.xmind-thumbnails'
+  thumbnailCacheDir: '.xmind-thumbnails',
+  language: 'en'
 };
 
 export class XMindLinkerSettingTab extends PluginSettingTab {
@@ -23,11 +25,30 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    containerEl.createEl('h2', { text: 'XMind Linker 设置' });
+    containerEl.createEl('h2', { text: i18n.t('settings.title') });
+
+    // 语言设置 - 放在最前面
+    new Setting(containerEl)
+      .setName(i18n.t('settings.language.name'))
+      .setDesc(i18n.t('settings.language.desc'))
+      .addDropdown(dropdown => {
+        dropdown
+          .addOption('en', i18n.t('settings.languageOptions.en'))
+          .addOption('zh-cn', i18n.t('settings.languageOptions.zh-cn'))
+          .setValue(this.plugin.settings.language)
+          .onChange(async (value: SupportedLanguage) => {
+            this.plugin.settings.language = value;
+            await this.plugin.saveSettings();
+            
+            // 更新 i18n 语言并重新渲染设置面板
+            i18n.setLanguage(value);
+            this.display();
+          });
+      });
 
     new Setting(containerEl)
-      .setName('启用缩略图提取')
-      .setDesc('自动提取 XMind 文件中的缩略图用于预览')
+      .setName(i18n.t('settings.enableThumbnailExtraction.name'))
+      .setDesc(i18n.t('settings.enableThumbnailExtraction.desc'))
       .addToggle(toggle => toggle
         .setValue(this.plugin.settings.enableThumbnailExtraction)
         .onChange(async (value) => {
@@ -36,11 +57,11 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
         }));
 
     new Setting(containerEl)
-      .setName('默认区域')
-      .setDesc('选择 XMind 查看器的默认区域（影响加载速度）')
+      .setName(i18n.t('settings.defaultRegion.name'))
+      .setDesc(i18n.t('settings.defaultRegion.desc'))
       .addDropdown(dropdown => dropdown
-        .addOption('global', '全球')
-        .addOption('cn', '中国大陆')
+        .addOption('global', i18n.t('settings.regionOptions.global'))
+        .addOption('cn', i18n.t('settings.regionOptions.cn'))
         .setValue(this.plugin.settings.defaultRegion)
         .onChange(async (value: 'global' | 'cn') => {
           this.plugin.settings.defaultRegion = value;
@@ -48,8 +69,8 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
         }));
 
     new Setting(containerEl)
-      .setName('显示悬停提示')
-      .setDesc('鼠标悬停在嵌入的 XMind 文件上时显示操作提示')
+      .setName(i18n.t('settings.showHoverTooltip.name'))
+      .setDesc(i18n.t('settings.showHoverTooltip.desc'))
       .addToggle(toggle => toggle
         .setValue(this.plugin.settings.showHoverTooltip)
         .onChange(async (value) => {
@@ -58,8 +79,8 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
         }));
 
     new Setting(containerEl)
-      .setName('启用系统集成')
-      .setDesc('允许通过系统默认应用打开 XMind 文件')
+      .setName(i18n.t('settings.enableSystemIntegration.name'))
+      .setDesc(i18n.t('settings.enableSystemIntegration.desc'))
       .addToggle(toggle => toggle
         .setValue(this.plugin.settings.enableSystemIntegration)
         .onChange(async (value) => {
@@ -68,8 +89,8 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
         }));
 
     new Setting(containerEl)
-      .setName('缩略图缓存目录')
-      .setDesc('存储提取的缩略图的目录名称')
+      .setName(i18n.t('settings.thumbnailCacheDir.name'))
+      .setDesc(i18n.t('settings.thumbnailCacheDir.desc'))
       .addText(text => text
         .setPlaceholder('.xmind-thumbnails')
         .setValue(this.plugin.settings.thumbnailCacheDir)

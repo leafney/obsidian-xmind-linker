@@ -11,6 +11,7 @@ A powerful Obsidian plugin that enables viewing and embedding XMind mind map fil
 - **⚡ Hover Actions**: Quick action menu on hover
 - **🔗 System Integration**: One-click opening with system default XMind application
 - **🌍 Multi-Region Support**: Support for global and China mainland CDN acceleration
+- **🌐 Multi-Language Support**: English and Simplified Chinese interface with automatic language detection
 - **⚙️ Customizable Settings**: Rich configuration options for different needs
 
 ## 📦 Installation
@@ -84,6 +85,7 @@ When thumbnail extraction is enabled, the plugin automatically extracts thumbnai
 
 Configure in Obsidian Settings → Plugin Options → XMind Linker:
 
+- **Language**: Choose interface language (English/简体中文) with automatic detection
 - **Enable Thumbnail Extraction**: Automatically extract and cache XMind file thumbnails
 - **Default Region**: Choose CDN region (Global/China Mainland)
 - **Show Hover Tooltip**: Display action menu on hover

@@ -24,6 +24,7 @@ export interface XMindViewerSettings {
   showHoverTooltip: boolean;
   enableSystemIntegration: boolean;
   thumbnailCacheDir: string;
+  language: 'en' | 'zh-cn';
 }
 
 export interface XMindEmbedOptions {

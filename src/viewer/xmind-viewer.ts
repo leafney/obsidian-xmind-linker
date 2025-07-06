@@ -1,5 +1,6 @@
 import { ItemView, WorkspaceLeaf, TFile } from 'obsidian';
 import { XMindParser } from '../file-handler/xmind-parser';
+import { i18n } from '../core/i18n';
 import type { XMindViewerSettings } from '../types';
 
 export const XMIND_VIEW_TYPE = 'xmind-viewer';
@@ -29,7 +30,7 @@ export class XMindView extends ItemView {
   }
 
   getDisplayText(): string {
-    return this.xmindFile ? this.xmindFile.basename : 'XMind Viewer';
+    return this.xmindFile ? this.xmindFile.basename : i18n.t('viewer.title');
   }
 
   getIcon(): string {
@@ -113,7 +114,7 @@ export class XMindView extends ItemView {
     
     // 显示提示信息
     this.contentContainer.createDiv({
-      text: '请选择一个 XMind 文件进行预览',
+      text: i18n.t('viewer.noFileSelected'),
       cls: 'xmind-no-file'
     });
   }
@@ -221,19 +222,19 @@ export class XMindView extends ItemView {
       console.log('文件读取完成，大小:', buffer.byteLength);
       
       // 验证文件
-      this.updateLoadingProgress('验证文件格式...', 40);
+      this.updateLoadingProgress(i18n.t('viewer.progress.validating'), 40);
       if (!(await XMindParser.isValidXMindFile(buffer))) {
-        throw new Error('无效的 XMind 文件');
+        throw new Error(i18n.t('errors.invalidXMindFile'));
       }
       console.log('文件验证通过');
 
       // 等待查看器库加载
-      this.updateLoadingProgress('加载查看器...', 60);
+      this.updateLoadingProgress(i18n.t('viewer.progress.loadingViewer'), 60);
       const XMindEmbedViewer = await this.getXMindEmbedViewer();
       console.log('查看器库加载完成');
       
       // 创建查看器容器（不清空 contentContainer，因为它包含 loading 界面）
-      this.updateLoadingProgress('初始化查看器...', 80);
+      this.updateLoadingProgress(i18n.t('viewer.progress.initializing'), 80);
       
       // 创建隐藏的 viewer 容器
       const viewerContainer = this.contentContainer.createDiv({
@@ -254,14 +255,14 @@ export class XMindView extends ItemView {
       console.log('查看器初始化完成');
 
       // 加载文件
-      this.updateLoadingProgress('渲染思维导图...', 90);
+      this.updateLoadingProgress(i18n.t('viewer.progress.rendering'), 90);
       await this.viewer.load(buffer);
       console.log('文件加载到查看器完成');
 
       // 添加事件监听
       this.setupViewerEvents();
 
-      this.updateLoadingProgress('等待渲染完成...', 95);
+      this.updateLoadingProgress(i18n.t('viewer.progress.completing'), 95);
       console.log('XMind 文件加载完成，等待渲染...');
       
       // 不再自动隐藏加载状态，等待 map-ready 事件
@@ -316,7 +317,7 @@ export class XMindView extends ItemView {
       
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
-          reject(new Error('加载 XMind 查看器库超时'));
+          reject(new Error(i18n.t('errors.viewerLibraryTimeout')));
         }, 30000); // 30秒超时
         
         script.onload = () => {
@@ -328,21 +329,21 @@ export class XMindView extends ItemView {
           if ((window as any).XMindEmbedViewer) {
             resolve((window as any).XMindEmbedViewer);
           } else {
-            reject(new Error('XMind 查看器库加载后不可用'));
+            reject(new Error(i18n.t('errors.viewerLibraryUnavailable')));
           }
         };
         
         script.onerror = (error) => {
           clearTimeout(timeout);
           console.error('XMind 查看器库加载失败:', error);
-          reject(new Error('无法从 CDN 加载 XMind 查看器库'));
+          reject(new Error(i18n.t('errors.viewerLibraryLoadFailed')));
         };
         
         document.head.appendChild(script);
       });
     } catch (error) {
       console.error('加载 XMind 查看器库时发生错误:', error);
-      throw new Error('无法加载 XMind 查看器库');
+      throw new Error(i18n.t('errors.cannotLoadViewerLibrary'));
     }
   }
 
@@ -375,13 +376,13 @@ export class XMindView extends ItemView {
     if (tipEl) {
       let tipText = '';
       if (progress < 50) {
-        tipText = '正在准备文件和资源...';
+        tipText = i18n.t('viewer.loadingTips.preparingFile');
       } else if (progress < 80) {
-        tipText = '正在初始化查看器...';
+        tipText = i18n.t('viewer.loadingTips.initializingViewer');
       } else if (progress < 95) {
-        tipText = '正在渲染思维导图...';
+        tipText = i18n.t('viewer.loadingTips.renderingMap');
       } else {
-        tipText = '即将完成，请稍候...';
+        tipText = i18n.t('viewer.loadingTips.almostDone');
       }
       tipEl.textContent = tipText;
     }
@@ -402,7 +403,7 @@ export class XMindView extends ItemView {
       }
       
       if (loadingText) {
-        loadingText.textContent = '加载完成！';
+        loadingText.textContent = i18n.t('viewer.loadingComplete');
       }
       
       // 添加淡出动画
@@ -562,7 +563,7 @@ export class XMindView extends ItemView {
     // 系统打开按钮
     if (this.settings.enableSystemIntegration) {
       const openSystemButton = toolbar.createEl('button', {
-        text: '在 XMind 中打开',
+        text: i18n.t('viewer.openInSystem'),
         cls: 'xmind-system-open-btn'
       });
 
@@ -573,7 +574,7 @@ export class XMindView extends ItemView {
 
     // 适应窗口按钮
     const fitButton = toolbar.createEl('button', {
-      text: '适应窗口',
+      text: i18n.t('viewer.fitWindow'),
       cls: 'xmind-fit-btn'
     });
 
@@ -601,7 +602,7 @@ export class XMindView extends ItemView {
     
     // 加载文本
     loadingContainer.createDiv({
-      text: '正在加载 XMind 文件...',
+      text: i18n.t('viewer.loadingFile'),
       cls: 'xmind-loading-text'
     });
     
@@ -621,7 +622,7 @@ export class XMindView extends ItemView {
     });
     
     tipContainer.createDiv({
-      text: '首次加载可能需要一些时间...',
+      text: i18n.t('viewer.loadingTips.firstLoad'),
       cls: 'xmind-loading-tip'
     });
   }
@@ -632,7 +633,7 @@ export class XMindView extends ItemView {
   private showErrorState(message: string): void {
     this.viewerContainer.empty();
     this.viewerContainer.createDiv({
-      text: `加载失败: ${message}`,
+      text: `${i18n.t('viewer.loadingFailed')}: ${message}`,
       cls: 'xmind-error'
     });
   }
@@ -651,7 +652,7 @@ export class XMindView extends ItemView {
       );
       await shell.openPath(filePath);
     } catch (error) {
-      console.error('无法打开系统应用:', error);
+      console.error(i18n.t('errors.systemOpenFailed'), error);
     }
   }
 } 
