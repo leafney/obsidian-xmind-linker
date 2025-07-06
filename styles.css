@@ -1,0 +1,233 @@
+/* XMind Viewer Plugin Styles */
+
+/* 查看器容器 */
+.xmind-viewer-container {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  position: relative;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 工具栏 */
+.xmind-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.xmind-viewer-toolbar button {
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.xmind-viewer-toolbar button:hover {
+  background: var(--background-modifier-hover);
+}
+
+.xmind-viewer-toolbar button:active {
+  background: var(--background-modifier-active);
+}
+
+/* 加载状态 */
+.xmind-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.xmind-loading::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--text-muted);
+  border-top: 2px solid var(--interactive-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 错误状态 */
+.xmind-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-error);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* 嵌入容器 */
+.xmind-embed-container {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin: 8px 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+/* 缩略图 */
+.xmind-thumbnail {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.xmind-thumbnail:hover {
+  opacity: 0.8;
+  transform: scale(1.02);
+}
+
+/* 悬停提示 */
+.xmind-hover-tooltip {
+  position: fixed;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  gap: 6px;
+}
+
+.xmind-tooltip-btn {
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.xmind-tooltip-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.xmind-tooltip-btn:active {
+  background: var(--background-modifier-active);
+}
+
+/* 设置面板 */
+.xmind-settings-section {
+  margin-bottom: 20px;
+}
+
+.xmind-settings-section h3 {
+  margin-bottom: 10px;
+  color: var(--text-normal);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.xmind-settings-description {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .xmind-viewer-toolbar {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .xmind-viewer-toolbar button {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+  
+  .xmind-hover-tooltip {
+    flex-direction: column;
+    min-width: 120px;
+  }
+}
+
+/* 暗色主题适配 */
+.theme-dark .xmind-viewer-container {
+  background: var(--background-primary);
+  border-color: var(--background-modifier-border);
+}
+
+.theme-dark .xmind-hover-tooltip {
+  background: var(--background-primary);
+  border-color: var(--background-modifier-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 高对比度支持 */
+@media (prefers-contrast: high) {
+  .xmind-viewer-container {
+    border-width: 2px;
+  }
+  
+  .xmind-viewer-toolbar button {
+    border-width: 2px;
+  }
+  
+  .xmind-hover-tooltip {
+    border-width: 2px;
+  }
+}
+
+/* 减少动画支持 */
+@media (prefers-reduced-motion: reduce) {
+  .xmind-thumbnail {
+    transition: none;
+  }
+  
+  .xmind-thumbnail:hover {
+    transform: none;
+  }
+  
+  .xmind-loading::before {
+    animation: none;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .xmind-viewer-toolbar {
+    display: none;
+  }
+  
+  .xmind-hover-tooltip {
+    display: none;
+  }
+  
+  .xmind-viewer-container {
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+} 
