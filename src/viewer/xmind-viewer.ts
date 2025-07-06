@@ -227,13 +227,17 @@ export class XMindView extends ItemView {
       const XMindEmbedViewer = await this.getXMindEmbedViewer();
       console.log('查看器库加载完成');
       
-      // 清空内容容器
-      this.contentContainer.empty();
-      
-      // 创建查看器
+      // 创建查看器容器（不清空 contentContainer，因为它包含 loading 界面）
       this.updateLoadingProgress('初始化查看器...', 80);
+      
+      // 创建隐藏的 viewer 容器
+      const viewerContainer = this.contentContainer.createDiv({
+        cls: 'xmind-viewer-content-inner'
+      });
+      viewerContainer.style.display = 'none'; // 先隐藏
+      
       this.viewer = new XMindEmbedViewer({
-        el: this.contentContainer,
+        el: viewerContainer,
         region: this.settings.defaultRegion
       });
       console.log('查看器初始化完成');
@@ -246,13 +250,17 @@ export class XMindView extends ItemView {
       // 添加事件监听
       this.setupViewerEvents();
 
-      this.updateLoadingProgress('完成', 100);
+      this.updateLoadingProgress('等待渲染完成...', 95);
+      console.log('XMind 文件加载完成，等待渲染...');
       
-      // 延迟一点再隐藏加载状态
+      // 不再自动隐藏加载状态，等待 map-ready 事件
+      // 设置一个备用超时，防止事件没有触发
       setTimeout(() => {
-        this.hideLoadingState();
-        console.log('XMind 文件加载完成');
-      }, 300);
+        if (this.contentContainer.querySelector('.xmind-loading')) {
+          console.log('渲染超时，强制隐藏加载状态');
+          this.hideLoadingState();
+        }
+      }, 10000); // 10秒超时
 
     } catch (error) {
       console.error('加载 XMind 文件失败:', error);
@@ -339,9 +347,11 @@ export class XMindView extends ItemView {
    * 更新加载进度
    */
   private updateLoadingProgress(message: string, progress: number): void {
+    console.log(`updateLoadingProgress 被调用: ${message} (${progress}%)`);
     this.loadingProgress = progress;
     const loadingEl = this.contentContainer.querySelector('.xmind-loading-text');
     const progressBar = this.contentContainer.querySelector('.xmind-loading-progress-bar');
+    console.log('找到的元素:', { loadingEl, progressBar });
     
     if (loadingEl) {
       loadingEl.textContent = message;
@@ -350,15 +360,69 @@ export class XMindView extends ItemView {
     if (progressBar) {
       (progressBar as HTMLElement).style.width = `${progress}%`;
     }
+
+    // 根据进度更新提示信息
+    const tipEl = this.contentContainer.querySelector('.xmind-loading-tip');
+    if (tipEl) {
+      let tipText = '';
+      if (progress < 50) {
+        tipText = '正在准备文件和资源...';
+      } else if (progress < 80) {
+        tipText = '正在初始化查看器...';
+      } else if (progress < 95) {
+        tipText = '正在渲染思维导图...';
+      } else {
+        tipText = '即将完成，请稍候...';
+      }
+      tipEl.textContent = tipText;
+    }
   }
 
   /**
    * 隐藏加载状态
    */
   private hideLoadingState(): void {
+    console.log('hideLoadingState 被调用');
     const loadingEl = this.contentContainer.querySelector('.xmind-loading');
+    console.log('找到的 loading 元素:', loadingEl);
     if (loadingEl) {
-      loadingEl.remove();
+      // 更新进度到100%
+      const progressBar = loadingEl.querySelector('.xmind-loading-progress-bar') as HTMLElement;
+      const loadingText = loadingEl.querySelector('.xmind-loading-text') as HTMLElement;
+      
+      if (progressBar) {
+        progressBar.style.width = '100%';
+      }
+      
+      if (loadingText) {
+        loadingText.textContent = '加载完成！';
+      }
+      
+      // 添加淡出动画
+      (loadingEl as HTMLElement).style.opacity = '1';
+      (loadingEl as HTMLElement).style.transition = 'opacity 0.5s ease-out';
+      
+      setTimeout(() => {
+        (loadingEl as HTMLElement).style.opacity = '0';
+        setTimeout(() => {
+          // 移除 loading 界面
+          loadingEl.remove();
+          
+          // 显示 viewer 容器
+          const viewerContainer = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
+          if (viewerContainer) {
+            viewerContainer.style.display = 'block';
+            // 添加淡入动画
+            viewerContainer.style.opacity = '0';
+            viewerContainer.style.transition = 'opacity 0.3s ease-in';
+            setTimeout(() => {
+              viewerContainer.style.opacity = '1';
+            }, 50);
+          }
+          
+          console.log('加载界面已隐藏，viewer 已显示');
+        }, 500);
+      }, 300);
     }
   }
 
@@ -370,6 +434,8 @@ export class XMindView extends ItemView {
 
     this.viewer.addEventListener('map-ready', () => {
       console.log('XMind 地图已加载');
+      // 地图准备就绪，隐藏加载状态
+      this.hideLoadingState();
     });
 
     this.viewer.addEventListener('zoom-change', (payload: any) => {
@@ -378,6 +444,8 @@ export class XMindView extends ItemView {
 
     this.viewer.addEventListener('sheet-switch', (payload: any) => {
       console.log('工作表切换:', payload);
+      // 工作表切换完成，确保加载状态已隐藏
+      this.hideLoadingState();
     });
   }
 
@@ -418,11 +486,13 @@ export class XMindView extends ItemView {
    * 显示加载状态
    */
   private showLoadingState(): void {
+    console.log('showLoadingState 被调用');
     this.contentContainer.empty();
     
     const loadingContainer = this.contentContainer.createDiv({
       cls: 'xmind-loading'
     });
+    console.log('loading 容器已创建:', loadingContainer);
     
     // 加载动画
     loadingContainer.createDiv({
@@ -435,13 +505,24 @@ export class XMindView extends ItemView {
       cls: 'xmind-loading-text'
     });
     
-    // 进度条
+    // 进度条容器
     const progressContainer = loadingContainer.createDiv({
       cls: 'xmind-loading-progress'
     });
     
+    // 进度条
     progressContainer.createDiv({
       cls: 'xmind-loading-progress-bar'
+    });
+    
+    // 提示文本
+    const tipContainer = loadingContainer.createDiv({
+      cls: 'xmind-loading-tips'
+    });
+    
+    tipContainer.createDiv({
+      text: '首次加载可能需要一些时间...',
+      cls: 'xmind-loading-tip'
     });
   }
 
