@@ -1,27 +1,32 @@
 # Obsidian XMind Linker
 
-一个强大的 Obsidian 插件，支持在 Obsidian 中查看和嵌入 XMind 思维导图文件。
+在 Obsidian 中查看 XMind 文件，并支持连接 XMind 软件打开进行编辑。
 
-## 🌟 功能特性
+## 🌟 核心功能
 
-- **📁 文件支持**: 直接在 Obsidian 中打开和查看 `.xmind` 文件
-- **🖼️ 嵌入预览**: 在 Markdown 中使用 `![[file.xmind]]` 语法嵌入 XMind 文件
-- **🔍 缩略图提取**: 自动提取 XMind 文件中的缩略图用于快速预览
-- **🖱️ 交互式预览**: 基于 [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) 的完整交互式预览
-- **⚡ 悬停操作**: 鼠标悬停显示快捷操作菜单
-- **🔗 系统集成**: 一键使用系统默认 XMind 应用打开文件
-- **🌍 多区域支持**: 支持全球和中国大陆 CDN 加速
-- **⚙️ 自定义设置**: 丰富的配置选项满足不同需求
+- **📖 文件查看**: 在 Obsidian 中直接查看 XMind 思维导图
+- **🔗 软件连接**: 一键连接 XMind 软件进行编辑
+- **📄 笔记嵌入**: 在 Markdown 中嵌入 XMind 文件，使用 `![[file.xmind]]` 语法
+- **⚡ 无缝切换**: 查看与编辑之间的流畅工作流程
+- **🖼️ 缩略图预览**: 自动提取缩略图快速预览
+- **🌐 多语言支持**: 支持英文和简体中文界面
 
 ## 📦 安装方法
 
-### 方法一：手动安装
+### 方法一：社区插件商店（即将推出）
 
-1. 下载最新的 release 文件
-2. 解压到 Obsidian 插件目录: `{vault}/.obsidian/plugins/xmind-linker/`
+1. 打开 Obsidian 设置
+2. 进入 社区插件 → 浏览
+3. 搜索 "XMind Linker"
+4. 安装并启用插件
+
+### 方法二：手动安装
+
+1. 下载最新版本文件
+2. 解压到 Obsidian 插件目录：`{vault}/.obsidian/plugins/xmind-linker/`
 3. 在 Obsidian 设置中启用插件
 
-### 方法二：开发版本
+### 方法三：开发版本
 
 1. 克隆仓库到插件目录
 2. 安装依赖并构建
@@ -33,7 +38,7 @@ git clone https://github.com/yourusername/obsidian-xmind-linker.git
 # 进入目录
 cd obsidian-xmind-linker
 
-# 安装依赖 (使用 Bun)
+# 安装依赖（使用 Bun）
 bun install
 
 # 构建插件
@@ -42,76 +47,40 @@ bun run build
 
 ## 🚀 使用方法
 
-### 1. 直接查看 XMind 文件
+### 1. 查看 XMind 文件
+- 在 Obsidian 文件管理器中双击 `.xmind` 文件
+- 或使用命令面板：`Ctrl+P` → "打开 XMind 文件"
 
-- 在 Obsidian 文件浏览器中双击 `.xmind` 文件
-- 或使用命令面板: `Ctrl+P` → "打开 XMind 文件"
-
-### 2. 在 Markdown 中嵌入
-
+### 2. 在笔记中嵌入
 ```markdown
 # 我的思维导图
 
-这是一个嵌入的 XMind 文件:
+![[项目规划.xmind]]
 
-![[我的思维导图.xmind]]
-
-可以点击预览或悬停查看操作选项。
+点击查看或悬停显示操作选项
 ```
 
-### 3. 缩略图预览
-
-启用缩略图提取后，插件会自动提取 XMind 文件中的缩略图，你可以直接在 Markdown 中使用:
-
-```markdown
-![[我的思维导图.xmind]]
-```
-
-### 4. 快捷命令
-
-- **提取缩略图**: `Ctrl+P` → "提取 XMind 缩略图"
-- **清理缓存**: `Ctrl+P` → "清理缩略图缓存"
-- **系统打开**: 在预览界面点击"在 XMind 中打开"
+### 3. 连接 XMind 软件编辑
+- 悬停在嵌入的文件上查看快速操作
+- 点击"在 XMind 中打开"启动外部编辑器
+- 在 XMind 中编辑完成后返回 Obsidian 查看
 
 ## ⚙️ 设置选项
 
-在 Obsidian 设置 → 插件选项 → XMind Linker 中可以配置:
+在 Obsidian 设置 → 插件选项 → XMind Linker 中配置：
 
-- **启用缩略图提取**: 自动提取并缓存 XMind 文件缩略图
-- **默认区域**: 选择 CDN 区域（全球/中国大陆）
-- **显示悬停提示**: 鼠标悬停时显示操作菜单
-- **启用系统集成**: 允许调用系统 XMind 应用
-- **缩略图缓存目录**: 设置缓存目录名称
+- **语言**: 选择界面语言（English/简体中文），支持自动检测
+- **系统集成**: 启用连接 XMind 软件功能
+- **悬停操作**: 悬停时显示操作菜单
+- **缩略图缓存**: 自动提取缩略图加快预览
 
 ## 🛠️ 技术实现
 
-### 核心技术栈
-
-- **TypeScript**: 主要开发语言
-- **xmind-embed-viewer**: XMind 文件预览核心库
-- **JSZip**: 用于解析 XMind 文件（ZIP 格式）
-- **Obsidian API**: 深度集成 Obsidian 功能
-
-### 架构设计
-
-```
-obsidian-xmind-linker/
-├── src/
-│   ├── core/           # 核心逻辑
-│   ├── file-handler/   # 文件处理
-│   ├── viewer/         # 预览组件
-│   ├── ui/             # 用户界面
-│   └── types/          # 类型定义
-├── main.ts             # 插件入口
-└── styles.css          # 样式文件
-```
-
-### 关键特性
-
-1. **ZIP 文件解析**: XMind 文件本质上是 ZIP 包，包含 XML 数据和缩略图
-2. **动态加载**: 按需加载 xmind-embed-viewer 库
-3. **缓存机制**: 智能缓存缩略图，避免重复提取
-4. **事件驱动**: 基于 Obsidian 事件系统的响应式设计
+### 核心技术
+- **XMind 文件解析**: 原生支持 `.xmind` 格式（ZIP 包结构）
+- **系统集成**: 跨平台调用 XMind 软件
+- **交互式预览**: 基于 [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) 的完整预览功能
+- **智能缓存**: 缩略图提取和缓存机制
 
 ## 🔧 开发指南
 
@@ -127,7 +96,7 @@ obsidian-xmind-linker/
 # 安装依赖
 bun install
 
-# 开发模式 (监听文件变化)
+# 开发模式（监听文件变化）
 bun run dev
 
 # 构建生产版本
@@ -139,8 +108,8 @@ bun test
 
 ### 调试技巧
 
-1. 在 Obsidian 中启用开发者工具: `Ctrl+Shift+I`
-2. 查看控制台输出了解插件运行状态
+1. 在 Obsidian 中启用开发者工具：`Ctrl+Shift+I`
+2. 查看控制台输出了解插件状态
 3. 使用 `console.log` 进行调试
 
 ## 🤝 贡献指南
@@ -148,9 +117,9 @@ bun test
 欢迎提交 Issue 和 Pull Request！
 
 1. Fork 本仓库
-2. 创建功能分支: `git checkout -b feature/amazing-feature`
-3. 提交更改: `git commit -m 'Add amazing feature'`
-4. 推送到分支: `git push origin feature/amazing-feature`
+2. 创建功能分支：`git checkout -b feature/amazing-feature`
+3. 提交更改：`git commit -m 'Add amazing feature'`
+4. 推送到分支：`git push origin feature/amazing-feature`
 5. 创建 Pull Request
 
 ## 📄 许可证
@@ -165,11 +134,18 @@ bun test
 
 ## 📞 支持
 
-如果你遇到问题或有建议，请：
+如果您遇到问题或有建议：
 
 1. 查看 [Issues](https://github.com/yourusername/obsidian-xmind-linker/issues)
 2. 创建新的 Issue
-3. 加入讨论区交流
+3. 参与讨论
+
+## 📚 文档
+
+- **[English Documentation](README.md)** - 英文文档
+- **[安装指南](docs/INSTALL.md)** - 详细安装说明
+- **[使用指南](docs/USAGE_GUIDE.md)** - 全面的使用文档
+- **[部署指南](docs/DEPLOYMENT.md)** - 开发和部署指南
 
 ---
 

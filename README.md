@@ -1,18 +1,15 @@
 # Obsidian XMind Linker
 
-A powerful Obsidian plugin that enables viewing and embedding XMind mind map files directly within Obsidian.
+View XMind files in Obsidian and connect to XMind software for editing.
 
-## 🌟 Features
+## 🌟 Core Features
 
-- **📁 File Support**: Open and view `.xmind` files directly in Obsidian
-- **🖼️ Embed Preview**: Embed XMind files in Markdown using `![[file.xmind]]` syntax
-- **🔍 Thumbnail Extraction**: Automatically extract thumbnails from XMind files for quick preview
-- **🖱️ Interactive Preview**: Full interactive preview powered by [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer)
-- **⚡ Hover Actions**: Quick action menu on hover
-- **🔗 System Integration**: One-click opening with system default XMind application
-- **🌍 Multi-Region Support**: Support for global and China mainland CDN acceleration
-- **🌐 Multi-Language Support**: English and Simplified Chinese interface with automatic language detection
-- **⚙️ Customizable Settings**: Rich configuration options for different needs
+- **📖 File Viewing**: View XMind mind maps directly in Obsidian
+- **🔗 Software Connection**: One-click connection to XMind software for editing
+- **📄 Note Embedding**: Embed XMind files in Markdown using `![[file.xmind]]` syntax
+- **⚡ Seamless Workflow**: Smooth workflow between viewing and editing
+- **🖼️ Thumbnail Preview**: Auto-extract thumbnails for quick preview
+- **🌐 Multi-Language**: Support for English and Simplified Chinese interface
 
 ## 📦 Installation
 
@@ -75,52 +72,27 @@ When thumbnail extraction is enabled, the plugin automatically extracts thumbnai
 ![[my-mindmap.xmind]]
 ```
 
-### 4. Quick Commands
-
-- **Extract Thumbnail**: `Ctrl+P` → "Extract XMind Thumbnail"
-- **Clear Cache**: `Ctrl+P` → "Clear Thumbnail Cache"
-- **System Open**: Click "Open in XMind" in preview interface
+### 3. Connect to XMind for Editing
+- Hover over embedded files for quick actions
+- Click "Open in XMind" to launch external editor
+- Return to Obsidian to view after editing in XMind
 
 ## ⚙️ Settings
 
 Configure in Obsidian Settings → Plugin Options → XMind Linker:
 
 - **Language**: Choose interface language (English/简体中文) with automatic detection
-- **Enable Thumbnail Extraction**: Automatically extract and cache XMind file thumbnails
-- **Default Region**: Choose CDN region (Global/China Mainland)
-- **Show Hover Tooltip**: Display action menu on hover
-- **Enable System Integration**: Allow calling system XMind application
-- **Thumbnail Cache Directory**: Set cache directory name
+- **System Integration**: Enable connection to XMind software
+- **Hover Actions**: Display action menu on hover
+- **Thumbnail Cache**: Auto-extract thumbnails for faster preview
 
 ## 🛠️ Technical Implementation
 
-### Core Tech Stack
-
-- **TypeScript**: Primary development language
-- **xmind-embed-viewer**: Core XMind file preview library
-- **JSZip**: For parsing XMind files (ZIP format)
-- **Obsidian API**: Deep integration with Obsidian functionality
-
-### Architecture Design
-
-```
-obsidian-xmind-linker/
-├── src/
-│   ├── core/           # Core logic
-│   ├── file-handler/   # File processing
-│   ├── viewer/         # Preview components
-│   ├── ui/             # User interface
-│   └── types/          # Type definitions
-├── main.ts             # Plugin entry point
-└── styles.css          # Style file
-```
-
-### Key Features
-
-1. **ZIP File Parsing**: XMind files are essentially ZIP packages containing XML data and thumbnails
-2. **Dynamic Loading**: On-demand loading of xmind-embed-viewer library
-3. **Caching Mechanism**: Smart thumbnail caching to avoid repeated extraction
-4. **Event-Driven**: Responsive design based on Obsidian event system
+### Core Technology
+- **XMind file parsing**: Native support for `.xmind` format (ZIP-based)
+- **System integration**: Cross-platform XMind software invocation
+- **Interactive preview**: Full preview powered by [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer)
+- **Smart caching**: Thumbnail extraction and caching mechanism
 
 ## 🔧 Development Guide
 
@@ -182,7 +154,7 @@ If you encounter issues or have suggestions:
 
 ## 📚 Documentation
 
-- **[中文文档](docs/README_zh.md)** - Chinese documentation
+- **[中文文档](README_ZH.md)** - Chinese documentation
 - **[Installation Guide](docs/INSTALL.md)** - Detailed installation instructions
 - **[Usage Guide](docs/USAGE_GUIDE.md)** - Comprehensive usage documentation
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Development and deployment guide
