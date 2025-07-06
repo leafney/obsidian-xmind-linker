@@ -48,16 +48,21 @@ export class XMindView extends ItemView {
       cls: 'xmind-viewer-container'
     });
 
-    // 创建工具栏
-    this.createToolbar();
-
     // 创建内容容器
     this.contentContainer = this.viewerContainer.createDiv({
       cls: 'xmind-viewer-content'
     });
 
+    // 创建工具栏（在内容容器之后，显示在底部）
+    this.createToolbar();
+
     // 预加载查看器库
     this.preloadViewerLibrary();
+
+    // 添加窗口大小变化监听器
+    this.registerDomEvent(window, 'resize', () => {
+      this.resizeViewer();
+    });
 
     // 检查是否有文件需要加载
     await this.checkAndLoadFile();
@@ -238,7 +243,13 @@ export class XMindView extends ItemView {
       
       this.viewer = new XMindEmbedViewer({
         el: viewerContainer,
-        region: this.settings.defaultRegion
+        region: this.settings.defaultRegion,
+        width: '100%',
+        height: '100%',
+        styles: {
+          width: '100%',
+          height: '100%'
+        }
       });
       console.log('查看器初始化完成');
 
@@ -347,11 +358,9 @@ export class XMindView extends ItemView {
    * 更新加载进度
    */
   private updateLoadingProgress(message: string, progress: number): void {
-    console.log(`updateLoadingProgress 被调用: ${message} (${progress}%)`);
     this.loadingProgress = progress;
     const loadingEl = this.contentContainer.querySelector('.xmind-loading-text');
     const progressBar = this.contentContainer.querySelector('.xmind-loading-progress-bar');
-    console.log('找到的元素:', { loadingEl, progressBar });
     
     if (loadingEl) {
       loadingEl.textContent = message;
@@ -382,9 +391,7 @@ export class XMindView extends ItemView {
    * 隐藏加载状态
    */
   private hideLoadingState(): void {
-    console.log('hideLoadingState 被调用');
     const loadingEl = this.contentContainer.querySelector('.xmind-loading');
-    console.log('找到的 loading 元素:', loadingEl);
     if (loadingEl) {
       // 更新进度到100%
       const progressBar = loadingEl.querySelector('.xmind-loading-progress-bar') as HTMLElement;
@@ -421,8 +428,98 @@ export class XMindView extends ItemView {
           }
           
           console.log('加载界面已隐藏，viewer 已显示');
+          
+          // 触发 viewer 重新调整大小
+          this.resizeViewer();
+          
+          // 调整 XMind 内置工具栏位置
+          this.adjustXMindToolbar();
         }, 500);
       }, 300);
+    }
+  }
+
+  /**
+   * 调整 XMind 内置工具栏位置
+   */
+  private adjustXMindToolbar(): void {
+    // 延迟执行，确保 XMind 内容已完全加载
+    setTimeout(() => {
+      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner');
+      if (!container) return;
+
+      // 查找所有可能的工具栏元素
+      const toolbarSelectors = [
+        '[class*="toolbar"]',
+        '[class*="control"]',
+        '[style*="position: fixed"]',
+        '[style*="position: absolute"]',
+        '[style*="bottom"]'
+      ];
+
+      toolbarSelectors.forEach(selector => {
+        const elements = container.querySelectorAll(selector);
+        elements.forEach((element: HTMLElement) => {
+          if (element.style.bottom || element.style.position === 'fixed' || element.style.position === 'absolute') {
+            element.style.bottom = '80px';
+            element.style.zIndex = '999';
+            console.log('调整了 XMind 工具栏位置:', element);
+          }
+        });
+      });
+
+      // 使用 MutationObserver 监听动态添加的工具栏
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as HTMLElement;
+              if (element.style && (element.style.position === 'fixed' || element.style.position === 'absolute')) {
+                if (element.style.bottom) {
+                  element.style.bottom = '80px';
+                  element.style.zIndex = '999';
+                  console.log('动态调整了 XMind 工具栏位置:', element);
+                }
+              }
+            }
+          });
+        });
+      });
+
+      observer.observe(container, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style']
+      });
+
+      // 5秒后停止监听
+      setTimeout(() => observer.disconnect(), 5000);
+    }, 1000);
+  }
+
+  /**
+   * 调整查看器大小
+   */
+  private resizeViewer(): void {
+    if (!this.viewer) return;
+    
+    try {
+      // 尝试调用 viewer 的 resize 方法
+      if (typeof this.viewer.resize === 'function') {
+        this.viewer.resize();
+        console.log('viewer 大小已调整');
+      }
+      
+      // 尝试调用 setFitMap 方法来适应窗口
+      if (typeof this.viewer.setFitMap === 'function') {
+        setTimeout(() => {
+          this.viewer.setFitMap();
+          console.log('viewer 已适应窗口大小');
+        }, 100);
+      }
+    } catch (error) {
+      console.log('调整 viewer 大小时发生错误:', error);
     }
   }
 
@@ -436,6 +533,11 @@ export class XMindView extends ItemView {
       console.log('XMind 地图已加载');
       // 地图准备就绪，隐藏加载状态
       this.hideLoadingState();
+      
+      // 确保 viewer 适应窗口大小
+      setTimeout(() => {
+        this.resizeViewer();
+      }, 200);
     });
 
     this.viewer.addEventListener('zoom-change', (payload: any) => {
@@ -486,13 +588,11 @@ export class XMindView extends ItemView {
    * 显示加载状态
    */
   private showLoadingState(): void {
-    console.log('showLoadingState 被调用');
     this.contentContainer.empty();
     
     const loadingContainer = this.contentContainer.createDiv({
       cls: 'xmind-loading'
     });
-    console.log('loading 容器已创建:', loadingContainer);
     
     // 加载动画
     loadingContainer.createDiv({
