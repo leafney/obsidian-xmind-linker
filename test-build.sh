@@ -76,7 +76,7 @@ check_package_json() {
     local version=$(jq -r '.version' package.json)
     local main=$(jq -r '.main' package.json)
     
-    if [[ "$name" != "obsidian-xmind-viewer" ]]; then
+    if [[ "$name" != "xmind-linker" ]]; then
         print_error "package.json 中的 name 不正确: $name"
         return 1
     fi
@@ -101,12 +101,12 @@ check_manifest() {
     local name=$(jq -r '.name' manifest.json)
     local version=$(jq -r '.version' manifest.json)
     
-    if [[ "$id" != "obsidian-xmind-viewer" ]]; then
+    if [[ "$id" != "xmind-linker" ]]; then
         print_error "manifest.json 中的 id 不正确: $id"
         return 1
     fi
     
-    if [[ "$name" != "XMind Viewer" ]]; then
+    if [[ "$name" != "XMind Linker" ]]; then
         print_error "manifest.json 中的 name 不正确: $name"
         return 1
     fi

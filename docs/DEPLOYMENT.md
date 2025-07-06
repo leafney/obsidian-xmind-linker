@@ -6,7 +6,7 @@
 
 ```bash
 # 确保你在项目根目录
-cd obsidian-xmind-viewer
+cd obsidian-xmind-linker
 
 # 使用 Bun 安装依赖
 bun install
@@ -53,20 +53,20 @@ C:\Users\{用户名}\AppData\Roaming\obsidian\{库名}\.obsidian\plugins\
 
 ```bash
 # 在你的 Obsidian 库中创建插件目录
-mkdir -p /path/to/your-vault/.obsidian/plugins/obsidian-xmind-viewer
+mkdir -p /path/to/your-vault/.obsidian/plugins/xmind-linker
 ```
 
 ### 2.3 复制文件
 
 ```bash
 # 复制构建好的文件到插件目录
-cp main.js manifest.json styles.css /path/to/your-vault/.obsidian/plugins/obsidian-xmind-viewer/
+cp main.js manifest.json styles.css /path/to/your-vault/.obsidian/plugins/xmind-linker/
 ```
 
 **或者使用符号链接（推荐开发者）：**
 ```bash
 # 创建符号链接，方便开发调试
-ln -s /path/to/obsidian-xmind-viewer /path/to/your-vault/.obsidian/plugins/obsidian-xmind-viewer
+ln -s /path/to/obsidian-xmind-linker /path/to/your-vault/.obsidian/plugins/xmind-linker
 ```
 
 ## ⚙️ 第三步：在 Obsidian 中启用插件
@@ -273,7 +273,7 @@ cp main.js manifest.json styles.css release/
 
 # 创建压缩包
 cd release
-zip -r obsidian-xmind-viewer-v1.0.0.zip .
+zip -r obsidian-xmind-linker-v1.0.0.zip .
 ```
 
 ### 8.2 版本管理
@@ -292,7 +292,7 @@ git push origin main --tags
 ### 8.3 GitHub Release
 
 1. 在 GitHub 仓库中创建新的 Release
-2. 上传 `obsidian-xmind-viewer-v1.0.0.zip`
+2. 上传 `obsidian-xmind-linker-v1.0.0.zip`
 3. 填写 Release Notes
 
 ## 📝 第九步：文档和支持

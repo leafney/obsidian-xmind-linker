@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import type XMindViewerPlugin from '../../main';
+import type XMindLinkerPlugin from '../../main';
 import type { XMindViewerSettings } from '../types';
 
 export const DEFAULT_SETTINGS: XMindViewerSettings = {
@@ -10,10 +10,10 @@ export const DEFAULT_SETTINGS: XMindViewerSettings = {
   thumbnailCacheDir: '.xmind-thumbnails'
 };
 
-export class XMindViewerSettingTab extends PluginSettingTab {
-  plugin: XMindViewerPlugin;
+export class XMindLinkerSettingTab extends PluginSettingTab {
+  plugin: XMindLinkerPlugin;
 
-  constructor(app: App, plugin: XMindViewerPlugin) {
+  constructor(app: App, plugin: XMindLinkerPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -23,7 +23,7 @@ export class XMindViewerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    containerEl.createEl('h2', { text: 'XMind Viewer 设置' });
+    containerEl.createEl('h2', { text: 'XMind Linker 设置' });
 
     new Setting(containerEl)
       .setName('启用缩略图提取')

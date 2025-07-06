@@ -4,8 +4,8 @@
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/yourusername/obsidian-xmind-viewer.git
-cd obsidian-xmind-viewer
+git clone https://github.com/yourusername/obsidian-xmind-linker.git
+cd obsidian-xmind-linker
 
 # 2. 运行一键安装脚本
 ./install.sh
@@ -37,10 +37,10 @@ bun run build
 # Windows: %APPDATA%\obsidian\MyVault\.obsidian\plugins\
 
 # 创建插件目录
-mkdir -p "/path/to/your/vault/.obsidian/plugins/obsidian-xmind-viewer"
+mkdir -p "/path/to/your/vault/.obsidian/plugins/xmind-linker"
 
 # 复制文件
-cp main.js manifest.json styles.css "/path/to/your/vault/.obsidian/plugins/obsidian-xmind-viewer/"
+cp main.js manifest.json styles.css "/path/to/your/vault/.obsidian/plugins/xmind-linker/"
 ```
 
 ### 步骤 3：启用插件
@@ -136,5 +136,5 @@ cp main.js manifest.json styles.css "/path/to/your/vault/.obsidian/plugins/obsid
 
 **更多帮助：**
 - 📖 查看 [DEPLOYMENT.md](DEPLOYMENT.md) 获取详细说明
-- 🐛 遇到问题？查看 [GitHub Issues](https://github.com/yourusername/obsidian-xmind-viewer/issues)
+- 🐛 遇到问题？查看 [GitHub Issues](https://github.com/yourusername/obsidian-xmind-linker/issues)
 - 💡 有建议？欢迎提交 PR 或创建 Issue 

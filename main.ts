@@ -1,16 +1,16 @@
 import { Plugin, TFile, WorkspaceLeaf, MarkdownPostProcessorContext } from 'obsidian';
 import { XMindView, XMIND_VIEW_TYPE } from './src/viewer/xmind-viewer';
-import { XMindViewerSettingTab, DEFAULT_SETTINGS } from './src/core/settings';
+import { XMindLinkerSettingTab, DEFAULT_SETTINGS } from './src/core/settings';
 import { ThumbnailExtractor } from './src/file-handler/thumbnail-extractor';
 import type { XMindViewerSettings } from './src/types';
 
-export default class XMindViewerPlugin extends Plugin {
+export default class XMindLinkerPlugin extends Plugin {
   settings: XMindViewerSettings;
   thumbnailExtractor: ThumbnailExtractor;
   private openedFiles: Map<string, WorkspaceLeaf> = new Map();
 
   async onload() {
-    console.log('加载 XMind Viewer 插件');
+    console.log('加载 XMind Linker 插件');
 
     // 加载设置
     await this.loadSettings();
@@ -37,14 +37,14 @@ export default class XMindViewerPlugin extends Plugin {
     this.registerMarkdownPostProcessor(this.processXMindEmbeds.bind(this));
 
     // 注册设置面板
-    this.addSettingTab(new XMindViewerSettingTab(this.app, this));
+    this.addSettingTab(new XMindLinkerSettingTab(this.app, this));
 
     // 注册事件监听器
     this.registerEventListeners();
   }
 
   async onunload() {
-    console.log('卸载 XMind Viewer 插件');
+    console.log('卸载 XMind Linker 插件');
     
     // 清理缓存
     if (this.thumbnailExtractor) {

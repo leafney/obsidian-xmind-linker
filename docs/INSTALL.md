@@ -27,7 +27,7 @@ bun run build
 ### 3. 安装到 Obsidian
 
 #### 方法一：开发模式
-1. 在你的 Obsidian 库中创建插件目录: `.obsidian/plugins/obsidian-xmind-viewer/`
+1. 在你的 Obsidian 库中创建插件目录: `.obsidian/plugins/xmind-linker/`
 2. 将构建好的文件复制到该目录：
    - `main.js`
    - `manifest.json`
@@ -36,7 +36,7 @@ bun run build
 #### 方法二：符号链接 (推荐开发者)
 ```bash
 # 在 Obsidian 插件目录中创建符号链接
-ln -s /path/to/obsidian-xmind-viewer /path/to/your-vault/.obsidian/plugins/obsidian-xmind-viewer
+ln -s /path/to/obsidian-xmind-linker /path/to/your-vault/.obsidian/plugins/xmind-linker
 ```
 
 ### 4. 启用插件
@@ -51,7 +51,7 @@ ln -s /path/to/obsidian-xmind-viewer /path/to/your-vault/.obsidian/plugins/obsid
 ### 目录结构
 
 ```
-obsidian-xmind-viewer/
+obsidian-xmind-linker/
 ├── src/                    # 源代码
 │   ├── core/              # 核心逻辑
 │   ├── file-handler/      # 文件处理

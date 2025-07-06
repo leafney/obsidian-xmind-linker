@@ -1,11 +1,11 @@
 {
-	"id": "obsidian-xmind-viewer",
-	"name": "XMind Viewer",
+	"id": "xmind-linker",
+	"name": "XMind Linker",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "View and embed XMind files in Obsidian. Support preview, thumbnail extraction, and system integration.",
+	"description": "Obsidian XMind Linker - View and embed XMind files in Obsidian. Support preview, thumbnail extraction, and system integration.",
 	"author": "Leafney",
-	"authorUrl": "https://github.com/leafney/obsidian-xmind-viewer",
+	"authorUrl": "https://github.com/leafney/obsidian-xmind-linker",
 	"fundingUrl": "https://buymeacoffee.com/leafney",
 	"isDesktopOnly": false
 }

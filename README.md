@@ -1,176 +1,190 @@
-# Obsidian XMind Viewer Plugin
+# Obsidian XMind Linker
 
-一个强大的 Obsidian 插件，支持在 Obsidian 中查看和嵌入 XMind 思维导图文件。
+A powerful Obsidian plugin that enables viewing and embedding XMind mind map files directly within Obsidian.
 
-## 🌟 功能特性
+## 🌟 Features
 
-- **📁 文件支持**: 直接在 Obsidian 中打开和查看 `.xmind` 文件
-- **🖼️ 嵌入预览**: 在 Markdown 中使用 `![[file.xmind]]` 语法嵌入 XMind 文件
-- **🔍 缩略图提取**: 自动提取 XMind 文件中的缩略图用于快速预览
-- **🖱️ 交互式预览**: 基于 [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) 的完整交互式预览
-- **⚡ 悬停操作**: 鼠标悬停显示快捷操作菜单
-- **🔗 系统集成**: 一键使用系统默认 XMind 应用打开文件
-- **🌍 多区域支持**: 支持全球和中国大陆 CDN 加速
-- **⚙️ 自定义设置**: 丰富的配置选项满足不同需求
+- **📁 File Support**: Open and view `.xmind` files directly in Obsidian
+- **🖼️ Embed Preview**: Embed XMind files in Markdown using `![[file.xmind]]` syntax
+- **🔍 Thumbnail Extraction**: Automatically extract thumbnails from XMind files for quick preview
+- **🖱️ Interactive Preview**: Full interactive preview powered by [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer)
+- **⚡ Hover Actions**: Quick action menu on hover
+- **🔗 System Integration**: One-click opening with system default XMind application
+- **🌍 Multi-Region Support**: Support for global and China mainland CDN acceleration
+- **⚙️ Customizable Settings**: Rich configuration options for different needs
 
-## 📦 安装方法
+## 📦 Installation
 
-### 方法一：手动安装
+### Method 1: Community Plugin Store (Coming Soon)
 
-1. 下载最新的 release 文件
-2. 解压到 Obsidian 插件目录: `{vault}/.obsidian/plugins/obsidian-xmind-viewer/`
-3. 在 Obsidian 设置中启用插件
+1. Open Obsidian Settings
+2. Go to Community Plugins → Browse
+3. Search for "XMind Linker"
+4. Install and enable the plugin
 
-### 方法二：开发版本
+### Method 2: Manual Installation
 
-1. 克隆仓库到插件目录
-2. 安装依赖并构建
+1. Download the latest release files
+2. Extract to Obsidian plugins directory: `{vault}/.obsidian/plugins/xmind-linker/`
+3. Enable the plugin in Obsidian settings
+
+### Method 3: Development Build
+
+1. Clone the repository to plugins directory
+2. Install dependencies and build
 
 ```bash
-# 克隆仓库
-git clone https://github.com/yourusername/obsidian-xmind-viewer.git
+# Clone repository
+git clone https://github.com/yourusername/obsidian-xmind-linker.git
 
-# 进入目录
-cd obsidian-xmind-viewer
+# Enter directory
+cd obsidian-xmind-linker
 
-# 安装依赖 (使用 Bun)
+# Install dependencies (using Bun)
 bun install
 
-# 构建插件
+# Build plugin
 bun run build
 ```
 
-## 🚀 使用方法
+## 🚀 Usage
 
-### 1. 直接查看 XMind 文件
+### 1. Direct XMind File Viewing
 
-- 在 Obsidian 文件浏览器中双击 `.xmind` 文件
-- 或使用命令面板: `Ctrl+P` → "打开 XMind 文件"
+- Double-click `.xmind` files in Obsidian file explorer
+- Or use command palette: `Ctrl+P` → "Open XMind File"
 
-### 2. 在 Markdown 中嵌入
-
-```markdown
-# 我的思维导图
-
-这是一个嵌入的 XMind 文件:
-
-![[我的思维导图.xmind]]
-
-可以点击预览或悬停查看操作选项。
-```
-
-### 3. 缩略图预览
-
-启用缩略图提取后，插件会自动提取 XMind 文件中的缩略图，你可以直接在 Markdown 中使用:
+### 2. Embedding in Markdown
 
 ```markdown
-![[我的思维导图.xmind]]
+# My Mind Map
+
+Here's an embedded XMind file:
+
+![[my-mindmap.xmind]]
+
+Click to preview or hover for action options.
 ```
 
-### 4. 快捷命令
+### 3. Thumbnail Preview
 
-- **提取缩略图**: `Ctrl+P` → "提取 XMind 缩略图"
-- **清理缓存**: `Ctrl+P` → "清理缩略图缓存"
-- **系统打开**: 在预览界面点击"在 XMind 中打开"
+When thumbnail extraction is enabled, the plugin automatically extracts thumbnails from XMind files for direct use in Markdown:
 
-## ⚙️ 设置选项
+```markdown
+![[my-mindmap.xmind]]
+```
 
-在 Obsidian 设置 → 插件选项 → XMind Viewer 中可以配置:
+### 4. Quick Commands
 
-- **启用缩略图提取**: 自动提取并缓存 XMind 文件缩略图
-- **默认区域**: 选择 CDN 区域（全球/中国大陆）
-- **显示悬停提示**: 鼠标悬停时显示操作菜单
-- **启用系统集成**: 允许调用系统 XMind 应用
-- **缩略图缓存目录**: 设置缓存目录名称
+- **Extract Thumbnail**: `Ctrl+P` → "Extract XMind Thumbnail"
+- **Clear Cache**: `Ctrl+P` → "Clear Thumbnail Cache"
+- **System Open**: Click "Open in XMind" in preview interface
 
-## 🛠️ 技术实现
+## ⚙️ Settings
 
-### 核心技术栈
+Configure in Obsidian Settings → Plugin Options → XMind Linker:
 
-- **TypeScript**: 主要开发语言
-- **xmind-embed-viewer**: XMind 文件预览核心库
-- **JSZip**: 用于解析 XMind 文件（ZIP 格式）
-- **Obsidian API**: 深度集成 Obsidian 功能
+- **Enable Thumbnail Extraction**: Automatically extract and cache XMind file thumbnails
+- **Default Region**: Choose CDN region (Global/China Mainland)
+- **Show Hover Tooltip**: Display action menu on hover
+- **Enable System Integration**: Allow calling system XMind application
+- **Thumbnail Cache Directory**: Set cache directory name
 
-### 架构设计
+## 🛠️ Technical Implementation
+
+### Core Tech Stack
+
+- **TypeScript**: Primary development language
+- **xmind-embed-viewer**: Core XMind file preview library
+- **JSZip**: For parsing XMind files (ZIP format)
+- **Obsidian API**: Deep integration with Obsidian functionality
+
+### Architecture Design
 
 ```
-obsidian-xmind-viewer/
+obsidian-xmind-linker/
 ├── src/
-│   ├── core/           # 核心逻辑
-│   ├── file-handler/   # 文件处理
-│   ├── viewer/         # 预览组件
-│   ├── ui/             # 用户界面
-│   └── types/          # 类型定义
-├── main.ts             # 插件入口
-└── styles.css          # 样式文件
+│   ├── core/           # Core logic
+│   ├── file-handler/   # File processing
+│   ├── viewer/         # Preview components
+│   ├── ui/             # User interface
+│   └── types/          # Type definitions
+├── main.ts             # Plugin entry point
+└── styles.css          # Style file
 ```
 
-### 关键特性
+### Key Features
 
-1. **ZIP 文件解析**: XMind 文件本质上是 ZIP 包，包含 XML 数据和缩略图
-2. **动态加载**: 按需加载 xmind-embed-viewer 库
-3. **缓存机制**: 智能缓存缩略图，避免重复提取
-4. **事件驱动**: 基于 Obsidian 事件系统的响应式设计
+1. **ZIP File Parsing**: XMind files are essentially ZIP packages containing XML data and thumbnails
+2. **Dynamic Loading**: On-demand loading of xmind-embed-viewer library
+3. **Caching Mechanism**: Smart thumbnail caching to avoid repeated extraction
+4. **Event-Driven**: Responsive design based on Obsidian event system
 
-## 🔧 开发指南
+## 🔧 Development Guide
 
-### 环境要求
+### Requirements
 
 - Node.js 16+
 - Bun 1.0+
 - Obsidian 0.15.0+
 
-### 开发流程
+### Development Workflow
 
 ```bash
-# 安装依赖
+# Install dependencies
 bun install
 
-# 开发模式 (监听文件变化)
+# Development mode (watch file changes)
 bun run dev
 
-# 构建生产版本
+# Build production version
 bun run build
 
-# 运行测试
+# Run tests
 bun test
 ```
 
-### 调试技巧
+### Debugging Tips
 
-1. 在 Obsidian 中启用开发者工具: `Ctrl+Shift+I`
-2. 查看控制台输出了解插件运行状态
-3. 使用 `console.log` 进行调试
+1. Enable developer tools in Obsidian: `Ctrl+Shift+I`
+2. Check console output for plugin status
+3. Use `console.log` for debugging
 
-## 🤝 贡献指南
+## 🤝 Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
 
-1. Fork 本仓库
-2. 创建功能分支: `git checkout -b feature/amazing-feature`
-3. 提交更改: `git commit -m 'Add amazing feature'`
-4. 推送到分支: `git push origin feature/amazing-feature`
-5. 创建 Pull Request
+1. Fork this repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Create Pull Request
 
-## 📄 许可证
+## 📄 License
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 致谢
+## 🙏 Acknowledgments
 
-- [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) - 核心预览功能
-- [Obsidian](https://obsidian.md/) - 强大的知识管理工具
-- 所有贡献者和用户的支持
+- [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) - Core preview functionality
+- [Obsidian](https://obsidian.md/) - Powerful knowledge management tool
+- All contributors and users for their support
 
-## 📞 支持
+## 📞 Support
 
-如果你遇到问题或有建议，请：
+If you encounter issues or have suggestions:
 
-1. 查看 [Issues](https://github.com/yourusername/obsidian-xmind-viewer/issues)
-2. 创建新的 Issue
-3. 加入讨论区交流
+1. Check [Issues](https://github.com/yourusername/obsidian-xmind-linker/issues)
+2. Create a new Issue
+3. Join the discussion
+
+## 📚 Documentation
+
+- **[中文文档](docs/README_zh.md)** - Chinese documentation
+- **[Installation Guide](docs/INSTALL.md)** - Detailed installation instructions
+- **[Usage Guide](docs/USAGE_GUIDE.md)** - Comprehensive usage documentation
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Development and deployment guide
 
 ---
 
-**享受在 Obsidian 中使用 XMind 思维导图的乐趣！** 🎉 
+**Enjoy using XMind mind maps in Obsidian!** 🎉 

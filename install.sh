@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Obsidian XMind Viewer Plugin 一键安装脚本
+# Obsidian XMind Linker Plugin 一键安装脚本
 # 使用方法: ./install.sh [obsidian-vault-path]
 
 set -e
@@ -144,7 +144,7 @@ select_vault() {
 # 安装插件到 Obsidian 库
 install_plugin() {
     local vault_path="$1"
-    local plugin_dir="$vault_path/.obsidian/plugins/obsidian-xmind-viewer"
+    local plugin_dir="$vault_path/.obsidian/plugins/xmind-linker"
     
     print_info "正在安装插件到: $vault_path"
     
@@ -162,7 +162,7 @@ install_plugin() {
 # 主函数
 main() {
     echo "=========================================="
-    echo "  Obsidian XMind Viewer Plugin 安装器"
+    echo "  Obsidian XMind Linker Plugin 安装器"
     echo "=========================================="
     echo
     
@@ -192,7 +192,7 @@ main() {
     echo "1. 打开 Obsidian"
     echo "2. 进入 设置 → 第三方插件"
     echo "3. 关闭安全模式（如果启用）"
-    echo "4. 在已安装插件中找到 'XMind Viewer' 并启用"
+    echo "4. 在已安装插件中找到 'XMind Linker' 并启用"
     echo "5. 享受使用 XMind 文件的乐趣！"
     echo
     echo "需要帮助？查看 DEPLOYMENT.md 获取详细说明"

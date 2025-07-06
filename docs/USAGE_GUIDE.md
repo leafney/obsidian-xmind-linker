@@ -10,8 +10,8 @@ Obsidian XMind Viewer 是一个功能强大的 Obsidian 插件，让你能够在
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/yourusername/obsidian-xmind-viewer.git
-cd obsidian-xmind-viewer
+git clone https://github.com/yourusername/obsidian-xmind-linker.git
+cd obsidian-xmind-linker
 
 # 2. 运行一键安装脚本
 ./install.sh
@@ -30,13 +30,13 @@ cd obsidian-xmind-viewer
 2. **复制文件到 Obsidian 插件目录**
    ```bash
    # macOS
-   cp main.js manifest.json styles.css ~/Library/Application\ Support/obsidian/YourVault/.obsidian/plugins/obsidian-xmind-viewer/
+   cp main.js manifest.json styles.css ~/Library/Application\ Support/obsidian/YourVault/.obsidian/plugins/xmind-linker/
    
    # Linux
-   cp main.js manifest.json styles.css ~/.config/obsidian/YourVault/.obsidian/plugins/obsidian-xmind-viewer/
+   cp main.js manifest.json styles.css ~/.config/obsidian/YourVault/.obsidian/plugins/xmind-linker/
    
    # Windows
-   cp main.js manifest.json styles.css %APPDATA%\obsidian\YourVault\.obsidian\plugins\obsidian-xmind-viewer\
+   cp main.js manifest.json styles.css %APPDATA%\obsidian\YourVault\.obsidian\plugins\xmind-linker\
    ```
 
 3. **在 Obsidian 中启用插件**
@@ -397,7 +397,7 @@ ls -la your-file.xmind
    window.xmindViewerDebug = true;
    
    // 查看插件状态
-   console.log(app.plugins.plugins['obsidian-xmind-viewer']);
+   console.log(app.plugins.plugins['xmind-linker']);
    ```
 
 ## 📈 性能优化
@@ -465,7 +465,7 @@ Obsidian XMind Viewer 插件让你能够在知识管理工作流中无缝集成�
 **需要帮助？**
 - 📖 查看 [README.md](README.md) 了解项目概述
 - 🚀 查看 [DEPLOYMENT.md](DEPLOYMENT.md) 了解详细部署信息
-- 🐛 遇到问题？在 [GitHub Issues](https://github.com/yourusername/obsidian-xmind-viewer/issues) 中反馈
+- 🐛 遇到问题？在 [GitHub Issues](https://github.com/yourusername/obsidian-xmind-linker/issues) 中反馈
 - 💡 有建议？欢迎提交 Pull Request
 
 **享受使用 XMind 与 Obsidian 的完美结合！** 🎨✨ 
