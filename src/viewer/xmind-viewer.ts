@@ -18,6 +18,10 @@ export class XMindView extends ItemView {
   constructor(leaf: WorkspaceLeaf, settings: XMindViewerSettings) {
     super(leaf);
     this.settings = settings;
+    
+    console.log('XMindView 构造函数被调用');
+    console.log('leaf:', leaf);
+    console.log('settings:', settings);
   }
 
   getViewType(): string {
@@ -33,6 +37,10 @@ export class XMindView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
+    console.log('XMindView onOpen 被调用');
+    console.log('当前 leaf:', this.leaf);
+    console.log('当前 xmindFile:', this.xmindFile);
+    
     this.containerEl.empty();
     
     // 创建查看器容器
@@ -51,9 +59,90 @@ export class XMindView extends ItemView {
     // 预加载查看器库
     this.preloadViewerLibrary();
 
-    // 如果有文件，加载它
+    // 检查是否有文件需要加载
+    await this.checkAndLoadFile();
+  }
+
+  /**
+   * 检查并加载文件
+   */
+  private async checkAndLoadFile(): Promise<void> {
+    // 如果已经有文件，直接加载
     if (this.xmindFile) {
+      console.log('已有文件，直接加载:', this.xmindFile.path);
       await this.loadXMindFile(this.xmindFile);
+      return;
+    }
+
+    // 尝试从 leaf 获取文件信息（这是 Obsidian 文件关联的标准方式）
+    const leafFile = (this.leaf as any).file;
+    if (leafFile && leafFile instanceof TFile && leafFile.extension === 'xmind') {
+      console.log('从 leaf.file 获取文件:', leafFile.path);
+      await this.setXMindFile(leafFile);
+      return;
+    }
+
+    // 尝试从当前活动文件获取
+    const activeFile = this.app.workspace.getActiveFile();
+    if (activeFile && activeFile.extension === 'xmind') {
+      console.log('从活动文件获取:', activeFile.path);
+      await this.setXMindFile(activeFile);
+      return;
+    }
+
+    // 尝试从 leaf 的状态获取文件信息
+    const state = (this.leaf as any).getViewState?.();
+    if (state && state.state && state.state.file) {
+      console.log('从 leaf 状态获取文件:', state.state.file);
+      const file = this.app.vault.getAbstractFileByPath(state.state.file);
+      if (file instanceof TFile && file.extension === 'xmind') {
+        await this.setXMindFile(file);
+        return;
+      }
+    }
+
+    console.log('没有找到要加载的文件');
+    console.log('leaf 详细信息:', this.leaf);
+    console.log('leaf.file:', (this.leaf as any).file);
+    console.log('activeFile:', this.app.workspace.getActiveFile());
+    
+    // 显示提示信息
+    this.contentContainer.createDiv({
+      text: '请选择一个 XMind 文件进行预览',
+      cls: 'xmind-no-file'
+    });
+  }
+
+  /**
+   * 获取视图状态
+   */
+  getState(): any {
+    return {
+      file: this.xmindFile?.path || null
+    };
+  }
+
+  /**
+   * 设置视图状态
+   */
+  async setState(state: any, result: any): Promise<void> {
+    console.log('XMindView setState 被调用:', state, result);
+    
+    if (state && state.file) {
+      const file = this.app.vault.getAbstractFileByPath(state.file);
+      if (file instanceof TFile && file.extension === 'xmind') {
+        console.log('通过 setState 设置文件:', file.path);
+        await this.setXMindFile(file);
+      }
+    }
+    
+    // 处理直接文件关联的情况
+    if (result && result.file) {
+      console.log('通过 result 获取文件:', result.file);
+      const file = this.app.vault.getAbstractFileByPath(result.file);
+      if (file instanceof TFile && file.extension === 'xmind') {
+        await this.setXMindFile(file);
+      }
     }
   }
 
@@ -62,6 +151,26 @@ export class XMindView extends ItemView {
     if (this.viewer) {
       this.viewer = null;
     }
+  }
+
+  /**
+   * 当文件被加载到视图中时调用（Obsidian 文件关联机制）
+   */
+  async onLoadFile(file: TFile): Promise<void> {
+    console.log('XMindView onLoadFile 被调用:', file.path);
+    await this.setXMindFile(file);
+  }
+
+  /**
+   * 当文件从视图中卸载时调用
+   */
+  async onUnloadFile(file: TFile): Promise<void> {
+    console.log('XMindView onUnloadFile 被调用:', file.path);
+    this.xmindFile = null;
+    if (this.viewer) {
+      this.viewer = null;
+    }
+    this.contentContainer.empty();
   }
 
   /**
@@ -93,6 +202,8 @@ export class XMindView extends ItemView {
     try {
       this.isLoading = true;
       
+      console.log('开始加载 XMind 文件:', file.path);
+      
       // 显示加载状态
       this.showLoadingState();
 
@@ -102,16 +213,19 @@ export class XMindView extends ItemView {
       // 读取文件
       this.updateLoadingProgress('读取文件中...', 20);
       const buffer = await this.app.vault.adapter.readBinary(file.path);
+      console.log('文件读取完成，大小:', buffer.byteLength);
       
       // 验证文件
       this.updateLoadingProgress('验证文件格式...', 40);
       if (!(await XMindParser.isValidXMindFile(buffer))) {
         throw new Error('无效的 XMind 文件');
       }
+      console.log('文件验证通过');
 
       // 等待查看器库加载
       this.updateLoadingProgress('加载查看器...', 60);
       const XMindEmbedViewer = await this.getXMindEmbedViewer();
+      console.log('查看器库加载完成');
       
       // 清空内容容器
       this.contentContainer.empty();
@@ -122,10 +236,12 @@ export class XMindView extends ItemView {
         el: this.contentContainer,
         region: this.settings.defaultRegion
       });
+      console.log('查看器初始化完成');
 
       // 加载文件
       this.updateLoadingProgress('渲染思维导图...', 90);
       await this.viewer.load(buffer);
+      console.log('文件加载到查看器完成');
 
       // 添加事件监听
       this.setupViewerEvents();
@@ -135,9 +251,11 @@ export class XMindView extends ItemView {
       // 延迟一点再隐藏加载状态
       setTimeout(() => {
         this.hideLoadingState();
+        console.log('XMind 文件加载完成');
       }, 300);
 
     } catch (error) {
+      console.error('加载 XMind 文件失败:', error);
       this.showErrorState(error.message);
     } finally {
       this.isLoading = false;
@@ -166,23 +284,45 @@ export class XMindView extends ItemView {
     try {
       // 检查是否已经加载
       if ((window as any).XMindEmbedViewer) {
+        console.log('XMind 查看器库已存在');
         XMindView.viewerLibLoaded = true;
         return (window as any).XMindEmbedViewer;
       }
 
+      console.log('开始加载 XMind 查看器库...');
+      
       // 尝试从 CDN 加载
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/xmind-embed-viewer/dist/umd/xmind-embed-viewer.js';
       
       return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('加载 XMind 查看器库超时'));
+        }, 30000); // 30秒超时
+        
         script.onload = () => {
+          clearTimeout(timeout);
+          console.log('XMind 查看器库加载成功');
           XMindView.viewerLibLoaded = true;
-          resolve((window as any).XMindEmbedViewer);
+          
+          // 验证库是否正确加载
+          if ((window as any).XMindEmbedViewer) {
+            resolve((window as any).XMindEmbedViewer);
+          } else {
+            reject(new Error('XMind 查看器库加载后不可用'));
+          }
         };
-        script.onerror = reject;
+        
+        script.onerror = (error) => {
+          clearTimeout(timeout);
+          console.error('XMind 查看器库加载失败:', error);
+          reject(new Error('无法从 CDN 加载 XMind 查看器库'));
+        };
+        
         document.head.appendChild(script);
       });
     } catch (error) {
+      console.error('加载 XMind 查看器库时发生错误:', error);
       throw new Error('无法加载 XMind 查看器库');
     }
   }

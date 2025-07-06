@@ -97,21 +97,26 @@ export default class XMindViewerPlugin extends Plugin {
    * 注册事件监听器
    */
   private registerEventListeners(): void {
-    // 监听文件打开事件
-    this.registerEvent(
-      this.app.workspace.on('file-open', (file) => {
-        if (file && file.extension === 'xmind') {
-          this.openXMindInViewer(file);
-        }
-      })
-    );
-
+    // 移除文件打开事件监听器，避免与文件关联冲突
+    // 文件关联已经通过 registerExtensions 处理
+    
     // 监听文件删除事件
     this.registerEvent(
       this.app.vault.on('delete', (file) => {
         if (file instanceof TFile && file.extension === 'xmind') {
           // 清理相关缓存
           this.thumbnailExtractor.cleanupCache();
+        }
+      })
+    );
+
+    // 监听活动文件变化，用于调试
+    this.registerEvent(
+      this.app.workspace.on('active-leaf-change', (leaf) => {
+        if (leaf && leaf.view && leaf.view.getViewType() === XMIND_VIEW_TYPE) {
+          console.log('XMind 视图变为活动状态:', leaf);
+          const activeFile = this.app.workspace.getActiveFile();
+          console.log('当前活动文件:', activeFile);
         }
       })
     );
@@ -274,10 +279,11 @@ export default class XMindViewerPlugin extends Plugin {
       })
     );
 
-    const view = leaf.view as XMindView;
-    if (view) {
-      await view.setXMindFile(file);
-    }
+    // 由于我们已经在 setState 中处理了文件加载，这里不需要再次调用
+    // const view = leaf.view as XMindView;
+    // if (view) {
+    //   await view.setXMindFile(file);
+    // }
   }
 
   /**
