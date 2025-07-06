@@ -180,6 +180,13 @@ export class XMindView extends ItemView {
   }
 
   /**
+   * 获取当前查看的 XMind 文件
+   */
+  getFile(): TFile | null {
+    return this.xmindFile;
+  }
+
+  /**
    * 设置要查看的 XMind 文件
    */
   async setXMindFile(file: TFile): Promise<void> {

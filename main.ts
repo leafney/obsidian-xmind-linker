@@ -9,6 +9,7 @@ export default class XMindLinkerPlugin extends Plugin {
   settings: XMindViewerSettings;
   thumbnailExtractor: ThumbnailExtractor;
   private openedFiles: Map<string, WorkspaceLeaf> = new Map();
+  private originalOpenLinkText: any;
 
   async onload() {
     // 加载设置
@@ -25,14 +26,23 @@ export default class XMindLinkerPlugin extends Plugin {
       this.settings.thumbnailCacheDir
     );
 
-    // 注册视图类型
+    // 注册视图类型，使用自定义工厂函数处理重复问题
     this.registerView(
       XMIND_VIEW_TYPE,
-      (leaf) => new XMindView(leaf, this.settings)
+      (leaf) => this.createXMindView(leaf)
     );
 
     // 注册文件扩展名
     this.registerExtensions(['xmind'], XMIND_VIEW_TYPE);
+    
+
+    
+    // 监听工作区变化，清理已关闭的标签页
+    this.registerEvent(
+      this.app.workspace.on('layout-change', () => {
+        this.cleanupClosedTabs();
+      })
+    );
 
     // 注册命令
     this.registerCommands();
@@ -45,10 +55,18 @@ export default class XMindLinkerPlugin extends Plugin {
 
     // 注册事件监听器
     this.registerEventListeners();
+
+    // 重写文件打开处理，优化用户体验
+    this.overrideFileOpenBehavior();
   }
 
   async onunload() {
     console.log(i18n.t('messages.pluginUnloaded'));
+    
+    // 恢复原始的 openLinkText 方法
+    if (this.originalOpenLinkText) {
+      this.app.workspace.openLinkText = this.originalOpenLinkText;
+    }
     
     // 清理缓存
     if (this.thumbnailExtractor) {
@@ -110,9 +128,13 @@ export default class XMindLinkerPlugin extends Plugin {
         if (file instanceof TFile && file.extension === 'xmind') {
           // 清理相关缓存
           this.thumbnailExtractor.cleanupCache();
+          // 清理打开文件记录
+          this.openedFiles.delete(file.path);
         }
       })
     );
+
+    // 注意：布局变化监听已经在上面的重复视图处理中包含了
 
     // 监听活动文件变化，用于调试
     this.registerEvent(
@@ -254,12 +276,171 @@ export default class XMindLinkerPlugin extends Plugin {
   }
 
   /**
+   * 创建 XMind 视图的工厂函数
+   */
+  private createXMindView(leaf: WorkspaceLeaf): XMindView {
+    console.log('创建 XMind 视图，leaf:', leaf);
+    
+    // 创建视图
+    const view = new XMindView(leaf, this.settings);
+    
+    // 立即进行重复检查，尽早处理
+    setTimeout(() => {
+      this.checkAndHandleDuplicateViews(leaf);
+    }, 20); // 减少延迟时间
+    
+    return view;
+  }
+
+  /**
+   * 检查并处理重复视图（针对新创建的 leaf）
+   */
+  private checkAndHandleDuplicateViews(newLeaf: WorkspaceLeaf): void {
+    // 等待视图完全初始化
+    const checkRepeatedly = (attempts = 0) => {
+      const newView = newLeaf.view as XMindView;
+      const newFile = newView?.getFile();
+      
+      if (!newFile && attempts < 10) {
+        // 如果文件还没有加载，继续等待
+        setTimeout(() => checkRepeatedly(attempts + 1), 50);
+        return;
+      }
+      
+      if (!newFile) {
+        console.log('新视图没有文件，跳过重复检查');
+        return;
+      }
+      
+      console.log('检查新创建的视图是否重复，文件:', newFile.path);
+      
+      // 获取所有 XMind 视图
+      const allXMindLeaves = this.app.workspace.getLeavesOfType(XMIND_VIEW_TYPE);
+      
+      // 查找打开相同文件的其他视图（排除当前新创建的）
+      const sameFileLeaves = allXMindLeaves.filter(leaf => {
+        if (leaf === newLeaf) return false;
+        
+        const view = leaf.view as XMindView;
+        const file = view?.getFile();
+        return file && file.path === newFile.path;
+      });
+      
+      if (sameFileLeaves.length > 0) {
+        console.log(`发现重复视图，立即关闭新创建的视图，激活已存在的视图`);
+        
+        // 立即激活已存在的视图
+        const existingLeaf = sameFileLeaves[0];
+        
+        // 先关闭新视图，再激活已存在的视图，减少视觉闪烁
+        newLeaf.detach();
+        this.app.workspace.setActiveLeaf(existingLeaf);
+        
+        // 更新记录
+        this.openedFiles.set(newFile.path, existingLeaf);
+      } else {
+        // 没有重复，记录新视图
+        this.openedFiles.set(newFile.path, newLeaf);
+        console.log('新视图已记录，无重复');
+      }
+    };
+    
+    checkRepeatedly();
+  }
+
+  /**
+   * 重写文件打开行为，优化用户体验
+   */
+  private overrideFileOpenBehavior(): void {
+    // 保存原始的 openLinkText 方法
+    this.originalOpenLinkText = this.app.workspace.openLinkText.bind(this.app.workspace);
+    
+    // 重写 openLinkText 方法
+    this.app.workspace.openLinkText = async (linktext: string, sourcePath: string, newLeaf?: boolean, openViewState?: any) => {
+      // 检查是否是 XMind 文件
+      if (linktext.endsWith('.xmind')) {
+        console.log('拦截 XMind 文件打开:', linktext);
+        
+        // 查找文件
+        const file = this.app.metadataCache.getFirstLinkpathDest(linktext, sourcePath);
+        if (file && file.extension === 'xmind') {
+          // 检查是否已经有打开这个文件的视图
+          const existingLeaf = this.findExistingXMindView(file);
+          if (existingLeaf) {
+            console.log('激活已存在的 XMind 视图，避免创建新标签页');
+            this.app.workspace.setActiveLeaf(existingLeaf);
+            return existingLeaf;
+          }
+        }
+      }
+      
+      // 如果不是 XMind 文件或没有重复，使用原始方法
+      return this.originalOpenLinkText(linktext, sourcePath, newLeaf, openViewState);
+    };
+
+
+  }
+
+  /**
+   * 处理重复的 XMind 视图
+   */
+  private handleDuplicateXMindViews(): void {
+    // 获取所有 XMind 视图
+    const xmindLeaves = this.app.workspace.getLeavesOfType(XMIND_VIEW_TYPE);
+    
+    if (xmindLeaves.length <= 1) {
+      return; // 没有重复，直接返回
+    }
+    
+    console.log('检查重复 XMind 视图，当前数量:', xmindLeaves.length);
+    
+    // 按文件路径分组
+    const fileGroups = new Map<string, WorkspaceLeaf[]>();
+    
+    xmindLeaves.forEach(leaf => {
+      const view = leaf.view as XMindView;
+      const file = view.getFile();
+      
+      if (file) {
+        const filePath = file.path;
+        if (!fileGroups.has(filePath)) {
+          fileGroups.set(filePath, []);
+        }
+        fileGroups.get(filePath)!.push(leaf);
+      }
+    });
+    
+    // 处理每个文件组的重复视图
+    fileGroups.forEach((leaves, filePath) => {
+      if (leaves.length > 1) {
+        console.log(`发现文件 ${filePath} 有 ${leaves.length} 个重复视图，开始清理...`);
+        
+        // 保留最后一个（最新创建的），关闭其他的
+        const keepLeaf = leaves[leaves.length - 1];
+        const toClose = leaves.slice(0, -1);
+        
+        toClose.forEach(leaf => {
+          console.log('关闭重复的视图:', leaf);
+          leaf.detach();
+        });
+        
+        // 更新记录
+        this.openedFiles.set(filePath, keepLeaf);
+        console.log(`清理完成，保留最新视图`);
+      } else if (leaves.length === 1) {
+        // 只有一个视图，更新记录
+        this.openedFiles.set(filePath, leaves[0]);
+      }
+    });
+  }
+
+  /**
    * 在查看器中打开 XMind 文件
    */
   private async openXMindInViewer(file: TFile): Promise<void> {
-    // 检查是否已经打开了这个文件
-    const existingLeaf = this.openedFiles.get(file.path);
-    if (existingLeaf && existingLeaf.view) {
+    // 首先检查是否已经有打开这个文件的 XMind 视图
+    const existingLeaf = this.findExistingXMindView(file);
+    if (existingLeaf) {
       // 如果已经打开，激活现有的标签页
       this.app.workspace.setActiveLeaf(existingLeaf);
       return;
@@ -274,28 +455,45 @@ export default class XMindLinkerPlugin extends Plugin {
 
     // 记录打开的文件
     this.openedFiles.set(file.path, leaf);
+  }
 
-    // 监听标签页关闭事件
-    this.registerEvent(
-      this.app.workspace.on('layout-change', () => {
-        // 清理已关闭的标签页
-        this.cleanupClosedTabs();
-      })
-    );
+  /**
+   * 查找已经打开指定文件的 XMind 视图
+   */
+  private findExistingXMindView(file: TFile): WorkspaceLeaf | null {
+    // 首先检查我们自己维护的记录
+    const recordedLeaf = this.openedFiles.get(file.path);
+    if (recordedLeaf && recordedLeaf.view && recordedLeaf.view.getViewType() === XMIND_VIEW_TYPE) {
+      const view = recordedLeaf.view as XMindView;
+      if (view.getFile()?.path === file.path) {
+        return recordedLeaf;
+      }
+    }
 
-    // 由于我们已经在 setState 中处理了文件加载，这里不需要再次调用
-    // const view = leaf.view as XMindView;
-    // if (view) {
-    //   await view.setXMindFile(file);
-    // }
+    // 遍历所有工作区的叶子节点，查找是否有打开相同文件的 XMind 视图
+    const leaves = this.app.workspace.getLeavesOfType(XMIND_VIEW_TYPE);
+    for (const leaf of leaves) {
+      const view = leaf.view as XMindView;
+      if (view.getFile()?.path === file.path) {
+        // 更新我们的记录
+        this.openedFiles.set(file.path, leaf);
+        return leaf;
+      }
+    }
+
+    return null;
   }
 
   /**
    * 清理已关闭的标签页记录
    */
   private cleanupClosedTabs(): void {
+    const activeLeaves = this.app.workspace.getLeavesOfType(XMIND_VIEW_TYPE);
+    const activeLeafSet = new Set(activeLeaves);
+
     for (const [filePath, leaf] of this.openedFiles.entries()) {
-      if (!leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) {
+      // 如果叶子节点不在活动叶子节点列表中，或者视图类型不匹配，则清理
+      if (!activeLeafSet.has(leaf) || !leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) {
         this.openedFiles.delete(filePath);
       }
     }
