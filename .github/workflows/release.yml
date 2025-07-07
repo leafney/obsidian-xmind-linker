@@ -1,0 +1,59 @@
+name: Release
+
+# 当推送 tag 时触发工作流
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          # 获取标签名并去掉 v 前缀
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Tag: $TAG_NAME, Version: $VERSION"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Update version in manifest
+        run: |
+          # 更新 manifest.json 中的版本号
+          bun install jq
+          jq ".version = \"${{ steps.get_version.outputs.version }}\"" manifest.json > manifest.json.tmp
+          mv manifest.json.tmp manifest.json
+          echo "Updated manifest.json version to ${{ steps.get_version.outputs.version }}"
+
+      - name: Update versions.json
+        run: |
+          # 更新 versions.json
+          export npm_package_version=${{ steps.get_version.outputs.version }}
+          node version-bump.mjs
+
+      - name: Build
+        run: bun run build
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.tag_name }}
+          name: "XMind Linker v${{ steps.get_version.outputs.version }}"
+          files: |
+            dist/main.js
+            manifest.json
+            styles.css
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

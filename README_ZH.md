@@ -33,7 +33,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/obsidian-xmind-linker.git
+git clone https://github.com/leafney/obsidian-xmind-linker.git
 
 # 进入目录
 cd obsidian-xmind-linker
@@ -116,28 +116,23 @@ bun test
 
 欢迎提交 Issue 和 Pull Request！
 
-1. Fork 本仓库
-2. 创建功能分支：`git checkout -b feature/amazing-feature`
-3. 提交更改：`git commit -m 'Add amazing feature'`
-4. 推送到分支：`git push origin feature/amazing-feature`
-5. 创建 Pull Request
-
 ## 📄 许可证
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
 ## 🙏 致谢
 
-- [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) - 核心预览功能
+- [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) - xmind核心预览功能
 - [Obsidian](https://obsidian.md/) - 强大的知识管理工具
-- 所有贡献者和用户的支持
-- [Cursor]
+- [Cursor](https://cursor.sh/) - AI 驱动的代码编辑器，为本项目的开发提供了强大支持
+- [obsidian-xmind-viewer](https://github.com/Ssentiago/obsidian-xmind-viewer) - 优秀的开源项目，为本项目提供了宝贵的设计思路和技术灵感
+
 
 ## 📞 支持
 
 如果您遇到问题或有建议：
 
-1. 查看 [Issues](https://github.com/yourusername/obsidian-xmind-linker/issues)
+1. 查看 [Issues](https://github.com/leafney/obsidian-xmind-linker/issues)
 2. 创建新的 Issue
 3. 参与讨论
 

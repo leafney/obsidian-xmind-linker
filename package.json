@@ -7,7 +7,8 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production && cp manifest.json styles.css dist/",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
-    "test": "bun test"
+    "test": "bun test",
+    "clean": "rm -rf dist/"
   },
   "keywords": [
     "obsidian",

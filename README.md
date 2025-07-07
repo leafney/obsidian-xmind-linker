@@ -1,5 +1,9 @@
 # Obsidian XMind Linker
 
+[![Release](https://github.com/leafney/obsidian-xmind-linker/workflows/Release/badge.svg)](https://github.com/leafney/obsidian-xmind-linker/actions/workflows/release.yml)
+[![Latest Release](https://img.shields.io/github/v/release/leafney/obsidian-xmind-linker)](https://github.com/leafney/obsidian-xmind-linker/releases)
+[![License](https://img.shields.io/github/license/leafney/obsidian-xmind-linker)](https://github.com/leafney/obsidian-xmind-linker/blob/main/LICENSE)
+
 View XMind files in Obsidian and connect to XMind software for editing.
 
 ## 🌟 Core Features
@@ -33,7 +37,7 @@ View XMind files in Obsidian and connect to XMind software for editing.
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/obsidian-xmind-linker.git
+git clone https://github.com/leafney/obsidian-xmind-linker.git
 
 # Enter directory
 cd obsidian-xmind-linker
@@ -128,27 +132,23 @@ bun test
 
 Issues and Pull Requests are welcome!
 
-1. Fork this repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Create Pull Request
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) - Core preview functionality
+- [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) - Xmind Core preview functionality
 - [Obsidian](https://obsidian.md/) - Powerful knowledge management tool
-- All contributors and users for their support
+- [Cursor](https://cursor.sh/) - AI-powered code editor that provided powerful development support for this project
+- [obsidian-xmind-viewer](https://github.com/Ssentiago/obsidian-xmind-viewer) - Excellent open-source project that provided valuable design insights and technical inspiration
+
 
 ## 📞 Support
 
 If you encounter issues or have suggestions:
 
-1. Check [Issues](https://github.com/yourusername/obsidian-xmind-linker/issues)
+1. Check [Issues](https://github.com/leafney/obsidian-xmind-linker/issues)
 2. Create a new Issue
 3. Join the discussion
 
