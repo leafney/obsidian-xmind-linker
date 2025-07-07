@@ -131,6 +131,7 @@ bun test
 - [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) - 核心预览功能
 - [Obsidian](https://obsidian.md/) - 强大的知识管理工具
 - 所有贡献者和用户的支持
+- [Cursor]
 
 ## 📞 支持
 

@@ -17,13 +17,13 @@
   flex-direction: column;
 }
 
-/* 工具栏 - 显示在底部左侧 */
+/* 工具栏 - 显示在底部左侧，自适应宽度 */
 .xmind-viewer-toolbar {
   display: flex;
   align-items: center;
   justify-content: flex-start; /* 左对齐 */
-  gap: 12px;
-  padding: 6px 12px;
+  gap: 6px; /* 减少间距 */
+  padding: 5px 6px;
   background: var(--background-secondary);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--background-modifier-border);
@@ -31,33 +31,129 @@
   position: absolute; /* 改为绝对定位 */
   bottom: 0;
   left: 0;
-  right: 0;
   z-index: 1001; /* 提高层级确保显示在最上层 */
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-  width: 250px;
+  width: auto; /* 自适应宽度 */
+  min-width: 120px; /* 最小宽度 */
+  max-width: 400px; /* 最大宽度 */
   border-radius: 0 12px 0 0;
 }
 
-.xmind-viewer-toolbar button {
-  padding: 8px 16px;
+/* 图标按钮样式 */
+.xmind-viewer-toolbar .xmind-icon-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
   background: var(--background-primary);
   color: var(--text-normal);
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
   transition: all 0.2s ease;
-  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  /* 强制禁用原生工具提示 */
+  pointer-events: auto;
 }
 
-.xmind-viewer-toolbar button:hover {
+/* 原生工具提示样式优化 */
+.xmind-viewer-toolbar .xmind-icon-btn[title] {
+  /* 确保工具提示正常显示 */
+  position: relative;
+}
+
+.xmind-viewer-toolbar .xmind-icon-btn:hover {
   background: var(--background-modifier-hover);
+  border-color: var(--interactive-accent);
 }
 
-.xmind-viewer-toolbar button:active {
+.xmind-viewer-toolbar .xmind-icon-btn:active {
   background: var(--background-modifier-active);
+}
+
+/* 图标样式 */
+.xmind-viewer-toolbar .xmind-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Lucide 图标样式 */
+.xmind-viewer-toolbar .xmind-icon.lucide-external-link::before {
+  content: "↗";
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.xmind-viewer-toolbar .xmind-icon.lucide-maximize-2::before {
+  content: "⛶";
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.xmind-viewer-toolbar .xmind-icon.lucide-zoom-in::before {
+  content: "⊕";
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.xmind-viewer-toolbar .xmind-icon.lucide-refresh-cw::before {
+  content: "↻";
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* 移除自定义工具提示，使用原生工具提示 */
+/* .xmind-viewer-toolbar .xmind-icon-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--background-tooltip);
+  color: var(--text-on-accent);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 1002;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.xmind-viewer-toolbar .xmind-icon-btn:hover::after {
+  opacity: 1;
+  visibility: visible;
+} */
+
+/* 移除原有的按钮样式 */
+.xmind-viewer-toolbar button:not(.xmind-icon-btn) {
+  display: none;
+}
+
+/* 工具栏元素基本样式 */
+.xmind-viewer-toolbar * {
+  /* 禁用文本选择，但保留工具提示 */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* 尝试美化原生工具提示 - 这些样式可能在某些浏览器中生效 */
+.xmind-viewer-toolbar .xmind-icon-btn {
+  /* 设置工具提示相关的CSS变量 */
+  --tooltip-bg: var(--background-secondary);
+  --tooltip-color: var(--text-normal);
+  --tooltip-border: var(--background-modifier-border);
 }
 
 /* 预览内容区域 - 占据剩余空间，为底部工具栏留出空间 */

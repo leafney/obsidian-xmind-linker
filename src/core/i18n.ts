@@ -73,6 +73,8 @@ export interface I18nTexts {
     loadingFailed: string;
     openInSystem: string;
     fitWindow: string;
+    actualSize: string;
+    refresh: string;
     loadingTips: {
       firstLoad: string;
       preparingFile: string;
@@ -171,6 +173,8 @@ const EN_TEXTS: I18nTexts = {
     loadingFailed: 'Loading failed',
     openInSystem: 'Open in XMind',
     fitWindow: 'Fit Window',
+    actualSize: '100% Size',
+    refresh: 'Refresh',
     loadingTips: {
       firstLoad: 'First load may take some time...',
       preparingFile: 'Preparing file and resources...',
@@ -267,6 +271,8 @@ const ZH_CN_TEXTS: I18nTexts = {
     loadingFailed: '加载失败',
     openInSystem: '在 XMind 中打开',
     fitWindow: '适应窗口',
+    actualSize: '100%大小',
+    refresh: '刷新',
     loadingTips: {
       firstLoad: '首次加载可能需要一些时间...',
       preparingFile: '正在准备文件和资源...',

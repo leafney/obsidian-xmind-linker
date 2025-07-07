@@ -569,28 +569,93 @@ export class XMindView extends ItemView {
 
     // 系统打开按钮
     if (this.settings.enableSystemIntegration) {
-      const openSystemButton = toolbar.createEl('button', {
-        text: i18n.t('viewer.openInSystem'),
-        cls: 'xmind-system-open-btn'
-      });
-
-      openSystemButton.addEventListener('click', () => {
-        this.openInSystem();
-      });
+      const openSystemButton = this.createIconButton(
+        toolbar,
+        'external-link',
+        i18n.t('viewer.openInSystem'),
+        () => this.openInSystem()
+      );
+      openSystemButton.addClass('xmind-system-open-btn');
     }
 
     // 适应窗口按钮
-    const fitButton = toolbar.createEl('button', {
-      text: i18n.t('viewer.fitWindow'),
-      cls: 'xmind-fit-btn'
+    const fitButton = this.createIconButton(
+      toolbar,
+      'maximize-2',
+      i18n.t('viewer.fitWindow'),
+      () => {
+        if (this.viewer && typeof this.viewer.setFitMap === 'function') {
+          this.viewer.setFitMap();
+        }
+      }
+    );
+    fitButton.addClass('xmind-fit-btn');
+
+    // 100%大小按钮
+    const actualSizeButton = this.createIconButton(
+      toolbar,
+      'zoom-in',
+      i18n.t('viewer.actualSize'),
+      () => {
+        if (this.viewer && typeof this.viewer.setZoomScale === 'function') {
+          this.viewer.setZoomScale(100);
+          console.log('设置缩放为 100%');
+        }
+      }
+    );
+    actualSizeButton.addClass('xmind-actual-size-btn');
+
+    // 刷新按钮
+    const refreshButton = this.createIconButton(
+      toolbar,
+      'refresh-cw',
+      i18n.t('viewer.refresh'),
+      () => this.refreshViewer()
+    );
+    refreshButton.addClass('xmind-refresh-btn');
+  }
+
+  /**
+   * 创建图标按钮
+   */
+  private createIconButton(
+    parent: HTMLElement,
+    iconName: string,
+    tooltip: string,
+    onClick: () => void
+  ): HTMLElement {
+    const button = parent.createEl('button', {
+      cls: 'xmind-icon-btn'
     });
 
-    fitButton.addEventListener('click', () => {
-      if (this.viewer) {
-        this.viewer.setFitMap();
-      }
+    // 创建图标
+    const icon = button.createEl('span', {
+      cls: `xmind-icon lucide-${iconName}`
     });
+
+    // 设置 tooltip - 使用原生 title 属性
+    button.setAttribute('aria-label', tooltip);
+    button.setAttribute('title', tooltip);
+
+    // 添加点击事件
+    button.addEventListener('click', onClick);
+
+    return button;
   }
+
+  /**
+   * 刷新查看器
+   */
+  private refreshViewer(): void {
+    if (!this.xmindFile) return;
+
+    console.log('刷新 XMind 文件:', this.xmindFile.path);
+    
+    // 重新加载文件
+    this.loadXMindFile(this.xmindFile);
+  }
+
+
 
   /**
    * 显示加载状态
