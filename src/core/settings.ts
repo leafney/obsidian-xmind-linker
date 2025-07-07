@@ -7,12 +7,11 @@ import { Notice } from 'obsidian';
 export const DEFAULT_SETTINGS: XMindViewerSettings = {
   enableThumbnailExtraction: true,
   defaultRegion: 'global',
-  showHoverTooltip: true,
   enableSystemIntegration: true,
   thumbnailCacheDir: '.xmind-thumbnails',
   language: 'en',
-  thumbnailMaxWidth: 400,
-  thumbnailMaxHeight: 300,
+  thumbnailMaxWidth: 600,
+  thumbnailMaxHeight: 400,
   thumbnailQuality: 'medium',
   enableThumbnailFallback: true,
   showThumbnailLoadingIndicator: true,
@@ -191,15 +190,7 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    new Setting(containerEl)
-      .setName(i18n.t('settings.showHoverTooltip.name'))
-      .setDesc(i18n.t('settings.showHoverTooltip.desc'))
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.showHoverTooltip)
-        .onChange(async (value) => {
-          this.plugin.settings.showHoverTooltip = value;
-          await this.plugin.saveSettings();
-        }));
+
 
     new Setting(containerEl)
       .setName(i18n.t('settings.enableSystemIntegration.name'))

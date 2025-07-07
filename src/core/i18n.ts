@@ -12,10 +12,7 @@ export interface I18nTexts {
       name: string;
       desc: string;
     };
-    showHoverTooltip: {
-      name: string;
-      desc: string;
-    };
+
     enableSystemIntegration: {
       name: string;
       desc: string;
@@ -163,10 +160,6 @@ const EN_TEXTS: I18nTexts = {
       name: 'Default Region',
       desc: 'Choose the default region for XMind viewer (affects loading speed)'
     },
-    showHoverTooltip: {
-      name: 'Show Hover Tooltip',
-      desc: 'Display action menu when hovering over embedded XMind files'
-    },
     enableSystemIntegration: {
       name: 'Enable System Integration',
       desc: 'Allow opening XMind files with system default application'
@@ -210,9 +203,9 @@ const EN_TEXTS: I18nTexts = {
         name: 'Thumbnail Quality',
         desc: 'Quality level for extracted thumbnails',
         options: {
-          low: 'Low',
-          medium: 'Medium',
-          high: 'High'
+          low: 'Low (Faster)',
+          medium: 'Medium (Balanced)',
+          high: 'High (Clearer)'
         }
       },
       maxCacheSize: {
@@ -306,10 +299,6 @@ const ZH_CN_TEXTS: I18nTexts = {
       name: '默认区域',
       desc: '选择 XMind 查看器的默认区域（影响加载速度）'
     },
-    showHoverTooltip: {
-      name: '显示悬停提示',
-      desc: '鼠标悬停在嵌入的 XMind 文件上时显示操作提示'
-    },
     enableSystemIntegration: {
       name: '启用系统集成',
       desc: '允许通过系统默认应用打开 XMind 文件'
@@ -353,9 +342,9 @@ const ZH_CN_TEXTS: I18nTexts = {
         name: '缩略图质量',
         desc: '提取的缩略图的质量级别',
         options: {
-          low: '低',
-          medium: '中',
-          high: '高'
+          low: '低（更快速）',
+          medium: '中（平衡）',
+          high: '高（更清晰）'
         }
       },
       maxCacheSize: {

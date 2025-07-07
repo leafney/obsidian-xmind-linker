@@ -21,7 +21,6 @@ export interface XMindTopic {
 export interface XMindViewerSettings {
   enableThumbnailExtraction: boolean;
   defaultRegion: 'global' | 'cn';
-  showHoverTooltip: boolean;
   enableSystemIntegration: boolean;
   thumbnailCacheDir: string;
   language: 'en' | 'zh-cn';

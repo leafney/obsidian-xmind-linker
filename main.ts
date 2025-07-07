@@ -222,10 +222,7 @@ export default class XMindLinkerPlugin extends Plugin {
         }
       }
 
-      // 添加悬停提示
-      if (this.settings.showHoverTooltip) {
-        this.addHoverTooltip(container, file);
-      }
+
 
       // 清空原始内容
       element.empty();
@@ -356,58 +353,7 @@ export default class XMindLinkerPlugin extends Plugin {
     return 'large';
   }
 
-  /**
-   * 添加悬停提示
-   */
-  private addHoverTooltip(element: HTMLElement, file: TFile): void {
-    let tooltip: HTMLElement | null = null;
 
-    element.addEventListener('mouseenter', () => {
-      if (tooltip) return;
-
-      tooltip = document.body.createDiv({
-        cls: 'xmind-hover-tooltip'
-      });
-
-      // 预览按钮
-      const previewBtn = tooltip.createEl('button', {
-        text: i18n.t('messages.viewInPlugin'),
-        cls: 'xmind-tooltip-btn'
-      });
-      previewBtn.addEventListener('click', () => {
-        this.openXMindInViewer(file);
-        tooltip?.remove();
-        tooltip = null;
-      });
-
-      // 系统打开按钮
-      if (this.settings.enableSystemIntegration) {
-        const systemBtn = tooltip.createEl('button', {
-          text: i18n.t('messages.openInXMind'),
-          cls: 'xmind-tooltip-btn'
-        });
-        systemBtn.addEventListener('click', async () => {
-          await this.openInSystem(file);
-          tooltip?.remove();
-          tooltip = null;
-        });
-      }
-
-      // 定位工具提示
-      const rect = element.getBoundingClientRect();
-      tooltip.style.position = 'fixed';
-      tooltip.style.left = `${rect.left}px`;
-      tooltip.style.top = `${rect.bottom + 5}px`;
-      tooltip.style.zIndex = '1000';
-    });
-
-    element.addEventListener('mouseleave', () => {
-      if (tooltip) {
-        tooltip.remove();
-        tooltip = null;
-      }
-    });
-  }
 
   /**
    * 创建 XMind 视图的工厂函数
@@ -580,8 +526,8 @@ export default class XMindLinkerPlugin extends Plugin {
       return;
     }
 
-    // 创建新的标签页
-    const leaf = this.app.workspace.getLeaf(false);
+    // 创建新的标签页 - 使用 true 参数强制在新标签页打开
+    const leaf = this.app.workspace.getLeaf(true);
     await leaf.setViewState({
       type: XMIND_VIEW_TYPE,
       state: { file: file.path }

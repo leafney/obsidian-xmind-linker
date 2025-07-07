@@ -602,50 +602,7 @@
 }
 
 /* 悬停提示样式 */
-.xmind-hover-tooltip {
-  position: fixed;
-  background: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 6px;
-  padding: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  display: flex;
-  gap: 6px;
-  animation: tooltipFadeIn 0.2s ease-out;
-}
 
-@keyframes tooltipFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.xmind-tooltip-btn {
-  padding: 4px 8px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  background: var(--background-secondary);
-  color: var(--text-normal);
-  cursor: pointer;
-  font-size: 11px;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.xmind-tooltip-btn:hover {
-  background: var(--background-modifier-hover);
-  border-color: var(--interactive-accent);
-}
-
-.xmind-tooltip-btn:active {
-  background: var(--background-modifier-active);
-}
 
 /* 设置面板样式 */
 .xmind-settings-section {
@@ -671,11 +628,7 @@
   border-color: var(--background-modifier-border);
 }
 
-.theme-dark .xmind-hover-tooltip {
-  background: var(--background-primary);
-  border-color: var(--background-modifier-border);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
+
 
 /* 打印样式 */
 @media print {
@@ -683,9 +636,7 @@
     display: none;
   }
   
-  .xmind-hover-tooltip {
-    display: none;
-  }
+
   
   .xmind-viewer-container {
     border: 1px solid #ccc;
