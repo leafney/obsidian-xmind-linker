@@ -6,6 +6,10 @@ on:
     tags:
       - "*"
 
+# 声明工作流权限
+permissions:
+  contents: write  # 允许创建releases和读写仓库内容
+
 jobs:
   build:
     runs-on: ubuntu-latest
