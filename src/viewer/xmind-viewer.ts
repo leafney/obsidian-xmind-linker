@@ -280,7 +280,7 @@ export class XMindView extends ItemView {
           console.log('渲染超时，强制隐藏加载状态');
           this.hideLoadingState();
         }
-      }, 10000); // 10秒超时
+      }, 15000); // 15秒超时
 
     } catch (error) {
       console.error('加载 XMind 文件失败:', error);

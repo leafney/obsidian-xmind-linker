@@ -107,7 +107,7 @@ cp main.js manifest.json styles.css "/path/to/your/vault/.obsidian/plugins/xmind
 
 ### 场景 3：会议记录
 ```markdown
-# 团队会议 - 2024-01-15
+# 团队会议
 
 ## 讨论要点
 ![[meeting-discussion.xmind]]
