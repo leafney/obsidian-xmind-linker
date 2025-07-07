@@ -113,6 +113,7 @@ export interface I18nTexts {
     openInSystem: string;
     fitWindow: string;
     actualSize: string;
+    actualSizeCenter: string;
     refresh: string;
     loadingTips: {
       firstLoad: string;
@@ -253,6 +254,7 @@ const EN_TEXTS: I18nTexts = {
     openInSystem: 'Open in XMind',
     fitWindow: 'Fit Window',
     actualSize: '100% Size',
+    actualSizeCenter: '100% Size & Center',
     refresh: 'Refresh',
     loadingTips: {
       firstLoad: 'First load may take some time...',
@@ -391,6 +393,7 @@ const ZH_CN_TEXTS: I18nTexts = {
     openInSystem: '在 XMind 中打开',
     fitWindow: '适应窗口',
     actualSize: '100%大小',
+    actualSizeCenter: '100%大小并居中',
     refresh: '刷新',
     loadingTips: {
       firstLoad: '首次加载可能需要一些时间...',

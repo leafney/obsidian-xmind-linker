@@ -101,6 +101,18 @@
   font-weight: bold;
 }
 
+.xmind-viewer-toolbar .xmind-icon.lucide-eye::before {
+  content: "\25A3";
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.xmind-viewer-toolbar .xmind-icon.lucide-crosshair::before {
+  content: "⊕";
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .xmind-viewer-toolbar .xmind-icon.lucide-refresh-cw::before {
   content: "↻";
   font-size: 14px;
@@ -156,6 +168,29 @@
   --tooltip-border: var(--background-modifier-border);
 }
 
+/* 特定按钮样式 */
+.xmind-actual-size-btn {
+  /* 100%大小按钮 - 蓝色主题 */
+  border-color: var(--color-blue);
+}
+
+.xmind-actual-size-btn:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px rgba(var(--color-blue-rgb), 0.2);
+}
+
+.xmind-actual-size-center-btn {
+  /* 100%大小并居中按钮 - 绿色主题 */
+  border-color: var(--color-green);
+}
+
+.xmind-actual-size-center-btn:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 2px rgba(var(--color-green-rgb), 0.2);
+}
+
 /* 预览内容区域 - 占据剩余空间，为底部工具栏留出空间 */
 .xmind-viewer-content {
   flex: 1;
@@ -172,6 +207,32 @@
   display: flex;
   flex-direction: column;
   position: relative;
+}
+
+/* 居中显示模式 - 当内容需要居中时应用 */
+.xmind-viewer-content-inner.centered {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  transition: all 0.3s ease !important;
+}
+
+/* 确保居中模式下的子元素不会超出容器 */
+.xmind-viewer-content-inner.centered > * {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  flex-shrink: 0 !important;
+  transition: transform 0.3s ease !important;
+}
+
+/* 为非居中模式也添加过渡效果，确保切换平滑 */
+.xmind-viewer-content-inner {
+  transition: all 0.3s ease;
+}
+
+.xmind-viewer-content-inner > * {
+  transition: transform 0.3s ease;
 }
 
 /* XMind Embed Viewer 样式优化 */

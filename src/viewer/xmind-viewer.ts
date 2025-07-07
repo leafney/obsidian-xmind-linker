@@ -586,6 +586,8 @@ export class XMindView extends ItemView {
       i18n.t('viewer.fitWindow'),
       () => {
         if (this.viewer && typeof this.viewer.setFitMap === 'function') {
+          // 移除居中模式，恢复适应窗口
+          this.removeCenterMode();
           this.viewer.setFitMap();
         }
       }
@@ -595,16 +597,38 @@ export class XMindView extends ItemView {
     // 100%大小按钮
     const actualSizeButton = this.createIconButton(
       toolbar,
-      'zoom-in',
+      'eye',
       i18n.t('viewer.actualSize'),
       () => {
         if (this.viewer && typeof this.viewer.setZoomScale === 'function') {
+          // 移除居中模式，只设置缩放为 100%
+          this.removeCenterMode();
           this.viewer.setZoomScale(100);
+          
           console.log('设置缩放为 100%');
         }
       }
     );
     actualSizeButton.addClass('xmind-actual-size-btn');
+
+    // 100%大小并居中按钮
+    const actualSizeCenterButton = this.createIconButton(
+      toolbar,
+      'crosshair',
+      i18n.t('viewer.actualSizeCenter'),
+      () => {
+        if (this.viewer && typeof this.viewer.setZoomScale === 'function') {
+          // 设置缩放为 100%
+          this.viewer.setZoomScale(100);
+          
+          // 使用隐藏过渡方案进行居中
+          this.centerViewContent();
+          
+          console.log('设置缩放为 100% 并居中显示（隐藏过渡方案）');
+        }
+      }
+    );
+    actualSizeCenterButton.addClass('xmind-actual-size-center-btn');
 
     // 刷新按钮
     const refreshButton = this.createIconButton(
@@ -763,6 +787,216 @@ export class XMindView extends ItemView {
       
       // 显示错误通知
       new Notice(errorMessage, 5000);
+    }
+  }
+
+  /**
+   * 居中显示查看器内容（隐藏过渡方案）
+   */
+  private centerViewContent(): void {
+    try {
+      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
+      if (!container) {
+        console.log('未找到内容容器，无法居中');
+        return;
+      }
+
+      if (!this.viewer) {
+        console.log('viewer 未初始化，无法居中');
+        return;
+      }
+
+      console.log('开始居中操作（隐藏过渡方案）');
+
+      // 方案：隐藏过渡过程，避免闪烁
+      // 1. 临时隐藏 viewer 内容
+      const originalOpacity = container.style.opacity;
+      container.style.transition = 'opacity 0.01s ease';
+      container.style.opacity = '0';
+
+      // 2. 执行API调用
+      setTimeout(() => {
+        if (typeof this.viewer.setFitMap === 'function') {
+          this.viewer.setFitMap();
+          console.log('已调用 setFitMap 进行居中');
+
+          // 3. 设置回100%缩放
+          setTimeout(() => {
+            if (typeof this.viewer.setZoomScale === 'function') {
+              this.viewer.setZoomScale(100);
+              console.log('已恢复 100% 缩放');
+
+              // 4. 显示内容
+              setTimeout(() => {
+                container.style.opacity = originalOpacity || '1';
+                console.log('居中操作完成，内容已显示');
+              }, 50);
+            }
+          }, 50);
+        }
+      }, 100);
+      
+    } catch (error) {
+      console.error('居中显示失败:', error);
+      // 确保在出错时恢复显示
+      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
+      if (container) {
+        container.style.opacity = '1';
+      }
+    }
+  }
+
+  /**
+   * 智能居中显示（备选方案，包含API增强）
+   * 这个方法会检查当前缩放状态，避免不必要的缩放变化
+   */
+  private centerViewContentWithAPI(): void {
+    try {
+      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
+      if (!container) {
+        console.log('未找到内容容器，无法居中');
+        return;
+      }
+
+      // 先应用 CSS 居中
+      container.classList.add('centered');
+      console.log('已应用居中样式');
+
+      // 智能API调用：只有在当前缩放不是100%时才使用API增强
+      if (this.viewer && typeof this.viewer.getZoomScale === 'function') {
+        const currentZoom = this.viewer.getZoomScale();
+        console.log('当前缩放比例:', currentZoom);
+        
+        // 如果当前缩放已经是100%，就不需要API调用
+        if (Math.abs(currentZoom - 100) < 1) {
+          console.log('缩放已经是100%，跳过API调用');
+          return;
+        }
+      }
+
+      // 如果需要API增强，使用更温和的方法
+      if (this.viewer && typeof this.viewer.setFitMap === 'function') {
+        setTimeout(() => {
+          try {
+            // 记录调用前的缩放
+            const beforeZoom = this.viewer.getZoomScale?.() || 100;
+            this.viewer.setFitMap();
+            
+            // 延迟恢复到100%
+            setTimeout(() => {
+              if (typeof this.viewer.setZoomScale === 'function') {
+                this.viewer.setZoomScale(100);
+                console.log(`从 ${beforeZoom}% 恢复到 100% 缩放`);
+              }
+            }, 50); // 减少延迟时间
+          } catch (error) {
+            console.log('API增强调用失败:', error);
+          }
+        }, 100); // 减少延迟时间
+      }
+      
+    } catch (error) {
+      console.error('智能居中显示失败:', error);
+    }
+  }
+
+  /**
+   * 基于事件监听的居中方法（最优化方案）
+   */
+  private centerViewContentEventBased(): void {
+    try {
+      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
+      if (!container || !this.viewer) {
+        console.log('容器或viewer未准备好');
+        return;
+      }
+
+      console.log('开始事件驱动的居中操作');
+
+      // 设置事件监听器，监听缩放变化
+      let zoomChangeCount = 0;
+      const targetZoomChanges = 2; // 预期的缩放变化次数
+
+      const zoomChangeHandler = (event: any) => {
+        zoomChangeCount++;
+        console.log(`缩放变化 ${zoomChangeCount}/${targetZoomChanges}:`, event);
+
+        if (zoomChangeCount === targetZoomChanges) {
+          // 移除事件监听器
+          this.viewer.removeEventListener('zoom-change', zoomChangeHandler);
+          console.log('居中操作完成（事件驱动）');
+        }
+      };
+
+      // 添加临时事件监听器
+      this.viewer.addEventListener('zoom-change', zoomChangeHandler);
+
+      // 执行居中操作
+      if (typeof this.viewer.setFitMap === 'function') {
+        this.viewer.setFitMap();
+        
+        // 短暂延迟后设置100%
+        setTimeout(() => {
+          if (typeof this.viewer.setZoomScale === 'function') {
+            this.viewer.setZoomScale(100);
+          }
+        }, 30);
+      }
+
+      // 设置超时清理，防止事件监听器泄漏
+      setTimeout(() => {
+        if (zoomChangeCount < targetZoomChanges) {
+          this.viewer.removeEventListener('zoom-change', zoomChangeHandler);
+          console.log('事件监听器已超时清理');
+        }
+      }, 2000);
+      
+    } catch (error) {
+      console.error('事件驱动居中失败:', error);
+    }
+  }
+
+  /**
+   * 快速切换方案（最小化闪烁）
+   */
+  private centerViewContentFastSwitch(): void {
+    try {
+      if (!this.viewer) {
+        console.log('viewer 未初始化');
+        return;
+      }
+
+      console.log('开始快速切换居中操作');
+
+      // 使用最短延迟进行快速切换
+      if (typeof this.viewer.setFitMap === 'function' && typeof this.viewer.setZoomScale === 'function') {
+        // 立即调用setFitMap
+        this.viewer.setFitMap();
+        
+        // 使用requestAnimationFrame确保在下一帧立即设置100%
+        requestAnimationFrame(() => {
+          this.viewer.setZoomScale(100);
+          console.log('快速切换完成');
+        });
+      }
+      
+    } catch (error) {
+      console.error('快速切换居中失败:', error);
+    }
+  }
+
+  /**
+   * 移除居中显示模式
+   */
+  private removeCenterMode(): void {
+    try {
+      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
+      if (container) {
+        container.classList.remove('centered');
+        console.log('已移除居中样式');
+      }
+    } catch (error) {
+      console.error('移除居中模式失败:', error);
     }
   }
 } 
