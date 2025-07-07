@@ -2,6 +2,16 @@
 
 在 Obsidian 中查看 XMind 文件，并支持连接 XMind 软件打开进行编辑。
 
+## 📸 功能展示
+
+### 在 Obsidian 中查看 XMind 文件
+![XMind 查看器效果](docs/image01.png)
+*在 Obsidian 中直接查看 XMind 思维导图，支持完整的交互功能*
+
+### 在 Markdown 中嵌入 XMind 文件
+![嵌入 XMind 文件](docs/image02.png)
+*使用简单的 markdown 语法在笔记中无缝嵌入 XMind 文件*
+
 ## 🌟 核心功能
 
 - **📖 文件查看**: 在 Obsidian 中直接查看 XMind 思维导图
@@ -13,7 +23,7 @@
 
 ## 📦 安装方法
 
-### 方法一：社区插件商店（即将推出）
+### 方法一：社区插件商店
 
 1. 打开 Obsidian 设置
 2. 进入 社区插件 → 浏览
@@ -49,7 +59,6 @@ bun run build
 
 ### 1. 查看 XMind 文件
 - 在 Obsidian 文件管理器中双击 `.xmind` 文件
-- 或使用命令面板：`Ctrl+P` → "打开 XMind 文件"
 
 ### 2. 在笔记中嵌入
 ```markdown
@@ -112,21 +121,12 @@ bun test
 2. 查看控制台输出了解插件状态
 3. 使用 `console.log` 进行调试
 
-## 🤝 贡献指南
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
-
 ## 🙏 致谢
 
 - [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) - xmind核心预览功能
 - [Obsidian](https://obsidian.md/) - 强大的知识管理工具
 - [Cursor](https://cursor.sh/) - AI 驱动的代码编辑器，为本项目的开发提供了强大支持
 - [obsidian-xmind-viewer](https://github.com/Ssentiago/obsidian-xmind-viewer) - 优秀的开源项目，为本项目提供了宝贵的设计思路和技术灵感
-
 
 ## 📞 支持
 
@@ -138,10 +138,15 @@ bun test
 
 ## 📚 文档
 
+- **[功能特性](docs/FEATURES.md)** - 详细的功能介绍和截图展示
 - **[English Documentation](README.md)** - 英文文档
 - **[安装指南](docs/INSTALL.md)** - 详细安装说明
 - **[使用指南](docs/USAGE_GUIDE.md)** - 全面的使用文档
 - **[部署指南](docs/DEPLOYMENT.md)** - 开发和部署指南
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
 ---
 

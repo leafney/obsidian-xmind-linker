@@ -82,15 +82,6 @@ export default class XMindLinkerPlugin extends Plugin {
    * 注册命令
    */
   private registerCommands(): void {
-    // 打开 XMind 文件命令
-    this.addCommand({
-      id: 'open-xmind-file',
-      name: i18n.t('commands.openXMindFile'),
-      callback: () => {
-        this.openXMindFilePicker();
-      }
-    });
-
     // 提取缩略图命令
     this.addCommand({
       id: 'extract-xmind-thumbnail',
@@ -579,14 +570,7 @@ export default class XMindLinkerPlugin extends Plugin {
     }
   }
 
-  /**
-   * 打开文件选择器
-   */
-  private async openXMindFilePicker(): Promise<void> {
-    // 这里可以实现文件选择器逻辑
-    // 或者直接打开文件浏览器
-    console.log(i18n.t('commands.openXMindFile'));
-  }
+
 
   /**
    * 提取缩略图

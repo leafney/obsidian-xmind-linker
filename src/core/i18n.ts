@@ -79,7 +79,6 @@ export interface I18nTexts {
   
   // 命令
   commands: {
-    openXMindFile: string;
     extractThumbnail: string;
     cleanupCache: string;
   };
@@ -224,7 +223,6 @@ const EN_TEXTS: I18nTexts = {
     }
   },
   commands: {
-    openXMindFile: 'Open XMind File',
     extractThumbnail: 'Extract XMind Thumbnail',
     cleanupCache: 'Clean Thumbnail Cache'
   },
@@ -363,7 +361,6 @@ const ZH_CN_TEXTS: I18nTexts = {
     }
   },
   commands: {
-    openXMindFile: '打开 XMind 文件',
     extractThumbnail: '提取 XMind 缩略图',
     cleanupCache: '清理缩略图缓存'
   },

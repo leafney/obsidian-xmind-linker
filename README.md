@@ -6,6 +6,16 @@
 
 View XMind files in Obsidian and connect to XMind software for editing.
 
+## 📸 Screenshots
+
+### XMind File Viewing in Obsidian
+![XMind Viewer in Action](docs/image01.png)
+*View XMind mind maps directly in Obsidian with full interactive features*
+
+### Embedded XMind Files in Markdown
+![Embedded XMind Files](docs/image02.png)
+*Seamlessly embed XMind files in your notes using simple markdown syntax*
+
 ## 🌟 Core Features
 
 - **📖 File Viewing**: View XMind mind maps directly in Obsidian
@@ -17,7 +27,7 @@ View XMind files in Obsidian and connect to XMind software for editing.
 
 ## 📦 Installation
 
-### Method 1: Community Plugin Store (Coming Soon)
+### Method 1: Community Plugin Store
 
 1. Open Obsidian Settings
 2. Go to Community Plugins → Browse
@@ -54,7 +64,6 @@ bun run build
 ### 1. Direct XMind File Viewing
 
 - Double-click `.xmind` files in Obsidian file explorer
-- Or use command palette: `Ctrl+P` → "Open XMind File"
 
 ### 2. Embedding in Markdown
 
@@ -128,14 +137,6 @@ bun test
 2. Check console output for plugin status
 3. Use `console.log` for debugging
 
-## 🤝 Contributing
-
-Issues and Pull Requests are welcome!
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
 - [xmind-embed-viewer](https://github.com/xmindltd/xmind-embed-viewer) - Xmind Core preview functionality
@@ -154,10 +155,15 @@ If you encounter issues or have suggestions:
 
 ## 📚 Documentation
 
+- **[Feature Overview](docs/FEATURES.md)** - Detailed feature descriptions and screenshots
 - **[中文文档](README_ZH.md)** - Chinese documentation
 - **[Installation Guide](docs/INSTALL.md)** - Detailed installation instructions
 - **[Usage Guide](docs/USAGE_GUIDE.md)** - Comprehensive usage documentation
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Development and deployment guide
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
