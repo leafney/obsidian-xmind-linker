@@ -2,6 +2,7 @@ import { ItemView, WorkspaceLeaf, TFile } from 'obsidian';
 import { XMindParser } from '../file-handler/xmind-parser';
 import { i18n } from '../core/i18n';
 import type { XMindViewerSettings } from '../types';
+import { Notice } from 'obsidian';
 
 export const XMIND_VIEW_TYPE = 'xmind-viewer';
 
@@ -655,8 +656,6 @@ export class XMindView extends ItemView {
     this.loadXMindFile(this.xmindFile);
   }
 
-
-
   /**
    * 显示加载状态
    */
@@ -722,9 +721,48 @@ export class XMindView extends ItemView {
         (this.app.vault.adapter as any).basePath, 
         this.xmindFile.path
       );
-      await shell.openPath(filePath);
+      
+      // 使用 shell.openPath 打开文件
+      const result = await shell.openPath(filePath);
+      
+      // 检查打开结果
+      if (result) {
+        // result 不为空字符串表示有错误
+        console.error('系统打开失败:', result);
+        
+        // 根据错误信息判断具体原因
+        let errorMessage: string;
+        if (result.includes('No application') || result.includes('没有应用') || 
+            result.includes('not found') || result.includes('找不到')) {
+          errorMessage = i18n.t('errors.systemOpenNoApp');
+        } else if (result.includes('Permission') || result.includes('权限') || 
+                   result.includes('denied') || result.includes('拒绝')) {
+          errorMessage = i18n.t('errors.systemOpenPermissionDenied');
+        } else {
+          errorMessage = `${i18n.t('errors.systemOpenFailed')}: ${result}`;
+        }
+        
+        // 显示错误通知
+        new Notice(errorMessage, 5000);
+      } else {
+        // 成功打开，显示成功通知
+        new Notice(i18n.t('messages.systemOpenSuccess'), 3000);
+      }
     } catch (error) {
-      console.error(i18n.t('errors.systemOpenFailed'), error);
+      console.error('系统打开异常:', error);
+      
+      // 根据异常类型判断错误原因
+      let errorMessage: string;
+      if (error.message && error.message.includes('spawn')) {
+        errorMessage = i18n.t('errors.systemOpenNoApp');
+      } else if (error.message && error.message.includes('EACCES')) {
+        errorMessage = i18n.t('errors.systemOpenPermissionDenied');
+      } else {
+        errorMessage = `${i18n.t('errors.systemOpenFailed')}: ${error.message || error}`;
+      }
+      
+      // 显示错误通知
+      new Notice(errorMessage, 5000);
     }
   }
 } 

@@ -54,6 +54,7 @@ export interface I18nTexts {
     cacheCleanupComplete: string;
     thumbnailExtracted: string;
     systemOpenFailed: string;
+    systemOpenSuccess: string;
     unsupportedFile: string;
     openInXMind: string;
     extractThumbnail: string;
@@ -97,6 +98,8 @@ export interface I18nTexts {
     processEmbedFailed: string;
     thumbnailExtractionFailed: string;
     systemOpenFailed: string;
+    systemOpenNoApp: string;
+    systemOpenPermissionDenied: string;
     unsupportedFileFormat: string;
     invalidXMindFile: string;
     viewerLibraryTimeout: string;
@@ -156,6 +159,7 @@ const EN_TEXTS: I18nTexts = {
     cacheCleanupComplete: 'Cache cleanup completed',
     thumbnailExtracted: 'Thumbnail extracted successfully',
     systemOpenFailed: 'Failed to open with system application',
+    systemOpenSuccess: 'Opened with system application',
     unsupportedFile: 'Unsupported file format',
     openInXMind: 'Open in XMind',
     extractThumbnail: 'Extract Thumbnail',
@@ -195,6 +199,8 @@ const EN_TEXTS: I18nTexts = {
     processEmbedFailed: 'Failed to process XMind embed',
     thumbnailExtractionFailed: 'Failed to extract thumbnail',
     systemOpenFailed: 'Failed to open with system application',
+    systemOpenNoApp: 'No system application found to open XMind file',
+    systemOpenPermissionDenied: 'Permission denied to open XMind file with system application',
     unsupportedFileFormat: 'Unsupported file format',
     invalidXMindFile: 'Invalid XMind file',
     viewerLibraryTimeout: 'XMind viewer library loading timeout',
@@ -254,6 +260,7 @@ const ZH_CN_TEXTS: I18nTexts = {
     cacheCleanupComplete: '缓存清理完成',
     thumbnailExtracted: '缩略图提取成功',
     systemOpenFailed: '使用系统应用打开失败',
+    systemOpenSuccess: '使用系统应用打开成功',
     unsupportedFile: '不支持的文件格式',
     openInXMind: '在 XMind 中打开',
     extractThumbnail: '提取缩略图',
@@ -293,6 +300,8 @@ const ZH_CN_TEXTS: I18nTexts = {
     processEmbedFailed: '处理 XMind 嵌入失败',
     thumbnailExtractionFailed: '缩略图提取失败',
     systemOpenFailed: '使用系统应用打开失败',
+    systemOpenNoApp: '没有找到可以打开 XMind 文件的系统应用',
+    systemOpenPermissionDenied: '没有权限使用系统应用打开 XMind 文件',
     unsupportedFileFormat: '不支持的文件格式',
     invalidXMindFile: '无效的 XMind 文件',
     viewerLibraryTimeout: '加载 XMind 查看器库超时',
