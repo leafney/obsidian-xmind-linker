@@ -25,6 +25,12 @@ export interface XMindViewerSettings {
   enableSystemIntegration: boolean;
   thumbnailCacheDir: string;
   language: 'en' | 'zh-cn';
+  thumbnailMaxWidth: number;
+  thumbnailMaxHeight: number;
+  thumbnailQuality: 'low' | 'medium' | 'high';
+  enableThumbnailFallback: boolean;
+  showThumbnailLoadingIndicator: boolean;
+  maxCacheSize: number;
 }
 
 export interface XMindEmbedOptions {
@@ -38,5 +44,19 @@ export interface ThumbnailCache {
   [filePath: string]: {
     thumbnailPath: string;
     lastModified: number;
+    size?: number;
   };
+}
+
+export interface ThumbnailExtractionResult {
+  success: boolean;
+  thumbnailPath?: string;
+  error?: string;
+  fallbackUsed?: boolean;
+}
+
+export interface ThumbnailDisplayState {
+  loading: boolean;
+  error: boolean;
+  fallback: boolean;
 } 

@@ -346,37 +346,262 @@
 
 /* 嵌入容器 */
 .xmind-embed-container {
-  position: relative;
   display: inline-block;
-  max-width: 100%;
   margin: 8px 0;
-  border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   overflow: hidden;
   background: var(--background-primary);
-  transition: all 0.2s ease;
+  border: 1px solid var(--background-modifier-border);
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .xmind-embed-container:hover {
   border-color: var(--interactive-accent);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
-/* 缩略图 */
+/* 缩略图样式优化 */
 .xmind-thumbnail {
   display: block;
   max-width: 100%;
   height: auto;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  border-radius: 6px;
 }
 
 .xmind-thumbnail:hover {
-  opacity: 0.8;
   transform: scale(1.02);
+  filter: brightness(1.1);
 }
 
-/* 悬停提示 */
+/* 响应式缩略图大小 */
+.xmind-thumbnail.size-small {
+  max-width: 300px;
+  max-height: 200px;
+}
+
+.xmind-thumbnail.size-medium {
+  max-width: 400px;
+  max-height: 300px;
+}
+
+.xmind-thumbnail.size-large {
+  max-width: 600px;
+  max-height: 450px;
+}
+
+/* 加载状态指示器 */
+.xmind-thumbnail-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  min-width: 250px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  padding: 20px;
+}
+
+.xmind-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--background-modifier-border);
+  border-top: 3px solid var(--interactive-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+.xmind-loading-text {
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Fallback 图标样式 */
+.xmind-fallback-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  min-width: 200px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.xmind-fallback-container:hover {
+  background: var(--background-modifier-hover);
+}
+
+.xmind-fallback-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+  opacity: 0.7;
+}
+
+.xmind-fallback-text {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.xmind-fallback-filename {
+  color: var(--text-normal);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+/* 错误状态样式 */
+.xmind-thumbnail-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  min-width: 200px;
+  background: var(--background-secondary);
+  border: 1px dashed var(--text-error);
+  border-radius: 6px;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.xmind-error-icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  color: var(--text-error);
+}
+
+.xmind-error-text {
+  color: var(--text-error);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* 缩略图信息覆盖层 */
+.xmind-thumbnail-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  color: white;
+  padding: 8px 12px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.xmind-embed-container:hover .xmind-thumbnail-overlay {
+  opacity: 1;
+}
+
+/* 质量指示器 */
+.xmind-quality-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.xmind-embed-container:hover .xmind-quality-badge {
+  opacity: 0.8;
+}
+
+/* 动画效果 */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.xmind-embed-container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .xmind-embed-container {
+    margin: 6px 0;
+  }
+  
+  .xmind-thumbnail.size-large,
+  .xmind-thumbnail.size-medium {
+    max-width: 100%;
+    max-height: 250px;
+  }
+  
+  .xmind-thumbnail-loading,
+  .xmind-fallback-container {
+    min-width: 180px;
+    min-height: 120px;
+    padding: 16px;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .xmind-embed-container {
+    border-width: 2px;
+  }
+  
+  .xmind-fallback-container {
+    border: 2px solid var(--text-muted);
+  }
+  
+  .xmind-thumbnail-error {
+    border-width: 2px;
+  }
+}
+
+/* 减少动画模式支持 */
+@media (prefers-reduced-motion: reduce) {
+  .xmind-thumbnail,
+  .xmind-embed-container,
+  .xmind-fallback-container,
+  .xmind-loading-spinner,
+  .xmind-thumbnail-overlay,
+  .xmind-quality-badge {
+    transition: none;
+    animation: none;
+  }
+  
+  .xmind-embed-container:hover {
+    transform: none;
+  }
+  
+  .xmind-thumbnail:hover {
+    transform: none;
+  }
+}
+
+/* 悬停提示样式 */
 .xmind-hover-tooltip {
   position: fixed;
   background: var(--background-primary);
@@ -422,7 +647,7 @@
   background: var(--background-modifier-active);
 }
 
-/* 设置面板 */
+/* 设置面板样式 */
 .xmind-settings-section {
   margin-bottom: 20px;
 }
@@ -440,24 +665,6 @@
   margin-bottom: 10px;
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .xmind-viewer-toolbar {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  
-  .xmind-viewer-toolbar button {
-    font-size: 11px;
-    padding: 3px 6px;
-  }
-  
-  .xmind-hover-tooltip {
-    flex-direction: column;
-    min-width: 120px;
-  }
-}
-
 /* 暗色主题适配 */
 .theme-dark .xmind-viewer-container {
   background: var(--background-primary);
@@ -468,44 +675,6 @@
   background: var(--background-primary);
   border-color: var(--background-modifier-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* 高对比度支持 */
-@media (prefers-contrast: high) {
-  .xmind-viewer-container {
-    border-width: 2px;
-  }
-  
-  .xmind-viewer-toolbar button {
-    border-width: 2px;
-  }
-  
-  .xmind-hover-tooltip {
-    border-width: 2px;
-  }
-}
-
-/* 减少动画支持 */
-@media (prefers-reduced-motion: reduce) {
-  .xmind-thumbnail {
-    transition: none;
-  }
-  
-  .xmind-thumbnail:hover {
-    transform: none;
-  }
-  
-  .xmind-loading-spinner {
-    animation: none;
-  }
-  
-  .xmind-loading-progress-bar {
-    animation: none;
-  }
-  
-  .xmind-hover-tooltip {
-    animation: none;
-  }
 }
 
 /* 打印样式 */

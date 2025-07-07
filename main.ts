@@ -1,10 +1,9 @@
-import { Plugin, TFile, WorkspaceLeaf, MarkdownPostProcessorContext } from 'obsidian';
+import { Plugin, TFile, WorkspaceLeaf, MarkdownPostProcessorContext, Notice } from 'obsidian';
 import { XMindView, XMIND_VIEW_TYPE } from './src/viewer/xmind-viewer';
 import { XMindLinkerSettingTab, DEFAULT_SETTINGS } from './src/core/settings';
 import { ThumbnailExtractor } from './src/file-handler/thumbnail-extractor';
 import { i18n } from './src/core/i18n';
 import type { XMindViewerSettings } from './src/types';
-import { Notice } from 'obsidian';
 
 export default class XMindLinkerPlugin extends Plugin {
   settings: XMindViewerSettings;
@@ -24,8 +23,12 @@ export default class XMindLinkerPlugin extends Plugin {
     // 初始化缩略图提取器
     this.thumbnailExtractor = new ThumbnailExtractor(
       this.app.vault,
-      this.settings.thumbnailCacheDir
+      this.settings.thumbnailCacheDir,
+      this.settings
     );
+
+    // 加载缓存数据
+    await this.thumbnailExtractor.loadCache();
 
     // 注册视图类型，使用自定义工厂函数处理重复问题
     this.registerView(
@@ -69,9 +72,9 @@ export default class XMindLinkerPlugin extends Plugin {
       this.app.workspace.openLinkText = this.originalOpenLinkText;
     }
     
-    // 清理缓存
+    // 清理无效缓存
     if (this.thumbnailExtractor) {
-      await this.thumbnailExtractor.cleanupCache();
+      await this.thumbnailExtractor.cleanupInvalidCache();
     }
   }
 
@@ -109,9 +112,8 @@ export default class XMindLinkerPlugin extends Plugin {
       id: 'cleanup-thumbnail-cache',
       name: i18n.t('commands.cleanupCache'),
       callback: async () => {
-        await this.thumbnailExtractor.cleanupCache();
-        // 显示通知
-        // this.app.workspace.trigger('notice', i18n.t('messages.cacheCleanupComplete'));
+        await this.thumbnailExtractor.clearAllCache();
+        new Notice('所有缓存已清理完成');
       }
     });
   }
@@ -127,8 +129,8 @@ export default class XMindLinkerPlugin extends Plugin {
     this.registerEvent(
       this.app.vault.on('delete', (file) => {
         if (file instanceof TFile && file.extension === 'xmind') {
-          // 清理相关缓存
-          this.thumbnailExtractor.cleanupCache();
+          // 清理无效缓存
+          this.thumbnailExtractor.cleanupInvalidCache();
           // 清理打开文件记录
           this.openedFiles.delete(file.path);
         }
@@ -191,20 +193,32 @@ export default class XMindLinkerPlugin extends Plugin {
 
       // 如果启用缩略图提取，尝试显示缩略图
       if (this.settings.enableThumbnailExtraction) {
-        const thumbnailPath = await this.thumbnailExtractor.extractThumbnail(file);
-        if (thumbnailPath) {
-          const img = container.createEl('img', {
-            cls: 'xmind-thumbnail',
-            attr: {
-              src: this.app.vault.adapter.getResourcePath(thumbnailPath),
-              alt: file.basename
-            }
-          });
+        // 显示加载状态
+        if (this.settings.showThumbnailLoadingIndicator) {
+          this.showLoadingIndicator(container, file);
+        }
 
-          // 添加点击事件
-          img.addEventListener('click', () => {
-            this.openXMindInViewer(file);
-          });
+        const result = await this.thumbnailExtractor.extractThumbnail(file);
+        
+        // 清除加载状态
+        container.empty();
+
+        if (result.success && result.thumbnailPath) {
+          // 成功提取缩略图
+          this.createThumbnailElement(container, file, result.thumbnailPath);
+        } else if (result.fallbackUsed && this.settings.enableThumbnailFallback) {
+          // 使用fallback显示
+          this.createFallbackElement(container, file);
+        } else {
+          // 显示错误状态
+          this.createErrorElement(container, file, result.error || '未知错误');
+        }
+      } else {
+        // 未启用缩略图提取，显示fallback
+        if (this.settings.enableThumbnailFallback) {
+          this.createFallbackElement(container, file);
+        } else {
+          container.textContent = `XMind: ${file.basename}`;
         }
       }
 
@@ -221,6 +235,125 @@ export default class XMindLinkerPlugin extends Plugin {
       console.error(i18n.t('errors.processEmbedFailed'), error);
       element.textContent = `${i18n.t('errors.processEmbedFailed')}: ${error.message}`;
     }
+  }
+
+  /**
+   * 显示加载指示器
+   */
+  private showLoadingIndicator(container: HTMLElement, file: TFile): void {
+    const loadingDiv = container.createDiv({
+      cls: 'xmind-thumbnail-loading'
+    });
+
+    const spinner = loadingDiv.createDiv({
+      cls: 'xmind-loading-spinner'
+    });
+
+    const text = loadingDiv.createDiv({
+      cls: 'xmind-loading-text',
+      text: `正在提取 ${file.basename} 的缩略图...`
+    });
+  }
+
+  /**
+   * 创建缩略图元素
+   */
+  private createThumbnailElement(container: HTMLElement, file: TFile, thumbnailPath: string): void {
+    const img = container.createEl('img', {
+      cls: `xmind-thumbnail size-${this.getThumbnailSize()}`,
+      attr: {
+        src: this.app.vault.adapter.getResourcePath(thumbnailPath),
+        alt: file.basename,
+        style: `max-width: ${this.settings.thumbnailMaxWidth}px; max-height: ${this.settings.thumbnailMaxHeight}px;`
+      }
+    });
+
+    // 添加质量指示器
+    if (this.settings.thumbnailQuality !== 'medium') {
+      const badge = container.createDiv({
+        cls: 'xmind-quality-badge',
+        text: this.settings.thumbnailQuality === 'high' ? 'HQ' : 'LQ'
+      });
+    }
+
+    // 添加信息覆盖层
+    const overlay = container.createDiv({
+      cls: 'xmind-thumbnail-overlay',
+      text: `${file.basename} • 点击查看`
+    });
+
+    // 添加点击事件
+    img.addEventListener('click', () => {
+      this.openXMindInViewer(file);
+    });
+
+    container.addEventListener('click', () => {
+      this.openXMindInViewer(file);
+    });
+  }
+
+  /**
+   * 创建fallback元素
+   */
+  private createFallbackElement(container: HTMLElement, file: TFile): void {
+    const fallbackDiv = container.createDiv({
+      cls: 'xmind-fallback-container'
+    });
+
+    // 创建SVG图标
+    const iconDiv = fallbackDiv.createDiv({
+      cls: 'xmind-fallback-icon'
+    });
+    iconDiv.innerHTML = this.thumbnailExtractor.createFallbackIcon();
+
+    const filename = fallbackDiv.createDiv({
+      cls: 'xmind-fallback-filename',
+      text: file.basename
+    });
+
+    const text = fallbackDiv.createDiv({
+      cls: 'xmind-fallback-text',
+      text: '点击查看 XMind 文件'
+    });
+
+    // 添加点击事件
+    fallbackDiv.addEventListener('click', () => {
+      this.openXMindInViewer(file);
+    });
+  }
+
+  /**
+   * 创建错误元素
+   */
+  private createErrorElement(container: HTMLElement, file: TFile, error: string): void {
+    const errorDiv = container.createDiv({
+      cls: 'xmind-thumbnail-error'
+    });
+
+    const iconDiv = errorDiv.createDiv({
+      cls: 'xmind-error-icon',
+      text: '⚠️'
+    });
+
+    const text = errorDiv.createDiv({
+      cls: 'xmind-error-text',
+      text: `缩略图提取失败: ${error}`
+    });
+
+    // 添加点击事件仍然可以打开文件
+    errorDiv.addEventListener('click', () => {
+      this.openXMindInViewer(file);
+    });
+  }
+
+  /**
+   * 获取缩略图大小级别
+   */
+  private getThumbnailSize(): string {
+    const width = this.settings.thumbnailMaxWidth;
+    if (width <= 300) return 'small';
+    if (width <= 500) return 'medium';
+    return 'large';
   }
 
   /**
@@ -593,5 +726,10 @@ export default class XMindLinkerPlugin extends Plugin {
    */
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+    
+    // 更新缩略图提取器的设置
+    if (this.thumbnailExtractor) {
+      this.thumbnailExtractor.updateSettings(this.settings);
+    }
   }
 } 

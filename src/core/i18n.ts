@@ -36,6 +36,48 @@ export interface I18nTexts {
       en: string;
       'zh-cn': string;
     };
+    // 新增缩略图设置
+    thumbnailSettings: {
+      groupTitle: string;
+      enableThumbnailFallback: {
+        name: string;
+        desc: string;
+      };
+      showThumbnailLoadingIndicator: {
+        name: string;
+        desc: string;
+      };
+      thumbnailMaxWidth: {
+        name: string;
+        desc: string;
+      };
+      thumbnailMaxHeight: {
+        name: string;
+        desc: string;
+      };
+      thumbnailQuality: {
+        name: string;
+        desc: string;
+        options: {
+          low: string;
+          medium: string;
+          high: string;
+        };
+      };
+      maxCacheSize: {
+        name: string;
+        desc: string;
+      };
+      cacheStats: {
+        name: string;
+        desc: string;
+        buttonText: string;
+        buttonTooltip: string;
+      };
+    };
+    otherSettings: {
+      groupTitle: string;
+    };
   };
   
   // 命令
@@ -144,6 +186,48 @@ const EN_TEXTS: I18nTexts = {
     languageOptions: {
       en: 'English',
       'zh-cn': '简体中文'
+    },
+    // 新增缩略图设置
+    thumbnailSettings: {
+      groupTitle: 'Thumbnail Settings',
+      enableThumbnailFallback: {
+        name: 'Enable Thumbnail Fallback',
+        desc: 'Show default icon when thumbnail extraction fails'
+      },
+      showThumbnailLoadingIndicator: {
+        name: 'Show Loading Indicator',
+        desc: 'Display loading animation during thumbnail extraction'
+      },
+      thumbnailMaxWidth: {
+        name: 'Thumbnail Max Width',
+        desc: 'Maximum width for extracted thumbnails (pixels)'
+      },
+      thumbnailMaxHeight: {
+        name: 'Thumbnail Max Height',
+        desc: 'Maximum height for extracted thumbnails (pixels)'
+      },
+      thumbnailQuality: {
+        name: 'Thumbnail Quality',
+        desc: 'Quality level for extracted thumbnails',
+        options: {
+          low: 'Low',
+          medium: 'Medium',
+          high: 'High'
+        }
+      },
+      maxCacheSize: {
+        name: 'Max Cache Size',
+        desc: 'Maximum size for thumbnail cache (MB)'
+      },
+      cacheStats: {
+        name: 'Cache Statistics',
+        desc: 'Current cache: {count} files, {size} MB',
+        buttonText: 'Clear All Cache',
+        buttonTooltip: 'Delete all cached thumbnails'
+      }
+    },
+    otherSettings: {
+      groupTitle: 'Other Settings'
     }
   },
   commands: {
@@ -245,6 +329,48 @@ const ZH_CN_TEXTS: I18nTexts = {
     languageOptions: {
       en: 'English',
       'zh-cn': '简体中文'
+    },
+    // 新增缩略图设置
+    thumbnailSettings: {
+      groupTitle: '缩略图设置',
+      enableThumbnailFallback: {
+        name: '启用缩略图备用方案',
+        desc: '当缩略图提取失败时显示默认图标'
+      },
+      showThumbnailLoadingIndicator: {
+        name: '显示加载指示器',
+        desc: '在缩略图提取过程中显示加载动画'
+      },
+      thumbnailMaxWidth: {
+        name: '缩略图最大宽度',
+        desc: '提取的缩略图的最大宽度（像素）'
+      },
+      thumbnailMaxHeight: {
+        name: '缩略图最大高度',
+        desc: '提取的缩略图的最大高度（像素）'
+      },
+      thumbnailQuality: {
+        name: '缩略图质量',
+        desc: '提取的缩略图的质量级别',
+        options: {
+          low: '低',
+          medium: '中',
+          high: '高'
+        }
+      },
+      maxCacheSize: {
+        name: '最大缓存大小',
+        desc: '缩略图缓存的最大大小（MB）'
+      },
+      cacheStats: {
+        name: '缓存统计',
+        desc: '当前缓存: {count} 个文件, {size} MB',
+        buttonText: '清理所有缓存',
+        buttonTooltip: '删除所有缓存的缩略图'
+      }
+    },
+    otherSettings: {
+      groupTitle: '其他设置'
     }
   },
   commands: {
