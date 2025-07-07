@@ -3,9 +3,9 @@
 	"name": "XMind Linker",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Obsidian XMind Linker - View XMind files in Obsidian and connect to XMind software for editing.",
+	"description": "XMind Linker - View XMind files in your vault and connect to XMind software for editing.",
 	"author": "Leafney",
-	"authorUrl": "https://github.com/leafney/obsidian-xmind-linker",
+	"authorUrl": "https://github.com/leafney",
 	"fundingUrl": "https://buymeacoffee.com/leafney",
 	"isDesktopOnly": false
 }

@@ -1,7 +1,7 @@
 {
   "name": "xmind-linker",
   "version": "1.0.0",
-  "description": "Obsidian XMind Linker - View XMind files in Obsidian and connect to XMind software for editing",
+  "description": "XMind Linker - View XMind files in your vault and connect to XMind software for editing",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
