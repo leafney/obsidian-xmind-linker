@@ -226,7 +226,7 @@ export class ThumbnailExtractor {
       // 清空内存中的缓存
       this.cache = {};
 
-      console.log('所有缓存已清理完成');
+      
     } catch (error) {
       console.error('清理所有缓存失败:', error);
       throw error;
@@ -433,7 +433,7 @@ export class ThumbnailExtractor {
           cleanedCount++;
           cleanedSize += fileSize;
           
-          console.log(`已清理孤立缓存文件: ${filePath}`);
+
         } catch (error) {
           const errorMsg = `清理孤立文件失败 ${filePath}: ${error.message}`;
           console.error(errorMsg);

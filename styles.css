@@ -1,5 +1,63 @@
 /* XMind Linker Plugin Styles */
 
+/* 通用样式类 - 用于替代内联样式 */
+.xmind-hidden {
+  display: none !important;
+}
+
+.xmind-visible {
+  display: block !important;
+}
+
+.xmind-opacity-0 {
+  opacity: 0 !important;
+}
+
+.xmind-opacity-1 {
+  opacity: 1 !important;
+}
+
+.xmind-fade-out {
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+.xmind-fade-out.xmind-fading {
+  opacity: 0;
+}
+
+.xmind-fade-in {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.xmind-fade-in.xmind-fading-in {
+  opacity: 1;
+}
+
+/* XMind 工具栏调整样式 */
+.xmind-toolbar-adjusted {
+  bottom: 80px !important;
+  z-index: 999 !important;
+}
+
+.xmind-toolbar-positioned {
+  position: fixed !important;
+  bottom: 80px !important;
+  z-index: 999 !important;
+}
+
+.xmind-toolbar-absolute {
+  position: absolute !important;
+  bottom: 80px !important;
+  z-index: 999 !important;
+}
+
+/* 进度条样式 */
+.xmind-progress-100 {
+  width: 100% !important;
+}
+
 /* 查看器容器 - 优化为占满整个窗口 */
 .xmind-viewer-container {
   width: 100%;

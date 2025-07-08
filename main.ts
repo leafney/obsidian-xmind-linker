@@ -18,7 +18,7 @@ export default class XMindLinkerPlugin extends Plugin {
     // 初始化国际化
     i18n.setLanguage(this.settings.language);
     
-    console.log(i18n.t('messages.pluginLoaded'));
+
 
     // 初始化缩略图提取器
     this.thumbnailExtractor = new ThumbnailExtractor(
@@ -65,7 +65,7 @@ export default class XMindLinkerPlugin extends Plugin {
   }
 
   async onunload() {
-    console.log(i18n.t('messages.pluginUnloaded'));
+
     
     // 恢复原始的 openLinkText 方法
     if (this.originalOpenLinkText) {
@@ -134,9 +134,8 @@ export default class XMindLinkerPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on('active-leaf-change', (leaf) => {
         if (leaf && leaf.view && leaf.view.getViewType() === XMIND_VIEW_TYPE) {
-          console.log('XMind 视图变为活动状态:', leaf);
           const activeFile = this.app.workspace.getActiveFile();
-          console.log('当前活动文件:', activeFile);
+          // 处理活动文件变化
         }
       })
     );
@@ -292,7 +291,12 @@ export default class XMindLinkerPlugin extends Plugin {
     const iconDiv = fallbackDiv.createDiv({
       cls: 'xmind-fallback-icon'
     });
-    iconDiv.innerHTML = this.thumbnailExtractor.createFallbackIcon();
+    // 使用 DOM API 安全地创建 SVG 元素
+    const svgString = this.thumbnailExtractor.createFallbackIcon();
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
+    const svgElement = svgDoc.documentElement;
+    iconDiv.appendChild(svgElement);
 
     const filename = fallbackDiv.createDiv({
       cls: 'xmind-fallback-filename',
@@ -350,8 +354,6 @@ export default class XMindLinkerPlugin extends Plugin {
    * 创建 XMind 视图的工厂函数
    */
   private createXMindView(leaf: WorkspaceLeaf): XMindView {
-    console.log('创建 XMind 视图，leaf:', leaf);
-    
     // 创建视图
     const view = new XMindView(leaf, this.settings);
     
@@ -379,11 +381,8 @@ export default class XMindLinkerPlugin extends Plugin {
       }
       
       if (!newFile) {
-        console.log('新视图没有文件，跳过重复检查');
         return;
       }
-      
-      console.log('检查新创建的视图是否重复，文件:', newFile.path);
       
       // 获取所有 XMind 视图
       const allXMindLeaves = this.app.workspace.getLeavesOfType(XMIND_VIEW_TYPE);
@@ -398,8 +397,6 @@ export default class XMindLinkerPlugin extends Plugin {
       });
       
       if (sameFileLeaves.length > 0) {
-        console.log(`发现重复视图，立即关闭新创建的视图，激活已存在的视图`);
-        
         // 立即激活已存在的视图
         const existingLeaf = sameFileLeaves[0];
         
@@ -412,7 +409,6 @@ export default class XMindLinkerPlugin extends Plugin {
       } else {
         // 没有重复，记录新视图
         this.openedFiles.set(newFile.path, newLeaf);
-        console.log('新视图已记录，无重复');
       }
     };
     
@@ -430,15 +426,12 @@ export default class XMindLinkerPlugin extends Plugin {
     this.app.workspace.openLinkText = async (linktext: string, sourcePath: string, newLeaf?: boolean, openViewState?: any) => {
       // 检查是否是 XMind 文件
       if (linktext.endsWith('.xmind')) {
-        console.log('拦截 XMind 文件打开:', linktext);
-        
         // 查找文件
         const file = this.app.metadataCache.getFirstLinkpathDest(linktext, sourcePath);
         if (file && file.extension === 'xmind') {
           // 检查是否已经有打开这个文件的视图
           const existingLeaf = this.findExistingXMindView(file);
           if (existingLeaf) {
-            console.log('激活已存在的 XMind 视图，避免创建新标签页');
             this.app.workspace.setActiveLeaf(existingLeaf);
             return existingLeaf;
           }
@@ -463,8 +456,6 @@ export default class XMindLinkerPlugin extends Plugin {
       return; // 没有重复，直接返回
     }
     
-    console.log('检查重复 XMind 视图，当前数量:', xmindLeaves.length);
-    
     // 按文件路径分组
     const fileGroups = new Map<string, WorkspaceLeaf[]>();
     
@@ -484,20 +475,16 @@ export default class XMindLinkerPlugin extends Plugin {
     // 处理每个文件组的重复视图
     fileGroups.forEach((leaves, filePath) => {
       if (leaves.length > 1) {
-        console.log(`发现文件 ${filePath} 有 ${leaves.length} 个重复视图，开始清理...`);
-        
         // 保留最后一个（最新创建的），关闭其他的
         const keepLeaf = leaves[leaves.length - 1];
         const toClose = leaves.slice(0, -1);
         
         toClose.forEach(leaf => {
-          console.log('关闭重复的视图:', leaf);
           leaf.detach();
         });
         
         // 更新记录
         this.openedFiles.set(filePath, keepLeaf);
-        console.log(`清理完成，保留最新视图`);
       } else if (leaves.length === 1) {
         // 只有一个视图，更新记录
         this.openedFiles.set(filePath, leaves[0]);
@@ -579,10 +566,9 @@ export default class XMindLinkerPlugin extends Plugin {
     try {
       const thumbnailPath = await this.thumbnailExtractor.extractThumbnail(file);
       if (thumbnailPath) {
-        console.log(`${i18n.t('messages.thumbnailExtracted')}: ${thumbnailPath}`);
-        // 显示成功通知
+        // 缩略图提取成功
       } else {
-        console.log(i18n.t('messages.fileNotFound'));
+        // 文件未找到
       }
     } catch (error) {
       console.error(i18n.t('errors.thumbnailExtractionFailed'), error);
