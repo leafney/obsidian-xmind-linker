@@ -1,7 +1,7 @@
 import { ItemView, WorkspaceLeaf, TFile } from 'obsidian';
 import { XMindParser } from '../file-handler/xmind-parser';
 import { i18n } from '../core/i18n';
-import type { XMindViewerSettings } from '../types';
+import type { XMindViewerSettings, XMindEmbedViewer, XMindEmbedViewerConstructor, WorkspaceLeafExtended, ViewState, ViewResult, ObsidianVaultAdapter, ObsidianWindow } from '../types';
 import { Notice } from 'obsidian';
 
 export const XMIND_VIEW_TYPE = 'xmind-viewer';
@@ -11,11 +11,11 @@ export class XMindView extends ItemView {
   private settings: XMindViewerSettings;
   private viewerContainer: HTMLElement;
   private contentContainer: HTMLElement;
-  private viewer: any; // XMindEmbedViewer instance
+  private viewer: XMindEmbedViewer | null = null;
   private isLoading = false;
   private loadingProgress = 0;
   private static viewerLibLoaded = false;
-  private static viewerLibPromise: Promise<any> | null = null;
+  private static viewerLibPromise: Promise<XMindEmbedViewer> | null = null;
 
   constructor(leaf: WorkspaceLeaf, settings: XMindViewerSettings) {
     super(leaf);
@@ -73,7 +73,8 @@ export class XMindView extends ItemView {
     }
 
     // 尝试从 leaf 获取文件信息（这是 Obsidian 文件关联的标准方式）
-    const leafFile = (this.leaf as any).file;
+    const leafExtended = this.leaf as WorkspaceLeafExtended;
+    const leafFile = leafExtended.file;
     if (leafFile && leafFile instanceof TFile && leafFile.extension === 'xmind') {
       await this.setXMindFile(leafFile);
       return;
@@ -87,7 +88,7 @@ export class XMindView extends ItemView {
     }
 
     // 尝试从 leaf 的状态获取文件信息
-    const state = (this.leaf as any).getViewState?.();
+    const state = leafExtended.getViewState?.();
     if (state && state.state && state.state.file) {
       const file = this.app.vault.getAbstractFileByPath(state.state.file);
       if (file instanceof TFile && file.extension === 'xmind') {
@@ -106,7 +107,7 @@ export class XMindView extends ItemView {
   /**
    * 获取视图状态
    */
-  getState(): any {
+  getState(): ViewState {
     return {
       file: this.xmindFile?.path || null
     };
@@ -115,17 +116,20 @@ export class XMindView extends ItemView {
   /**
    * 设置视图状态
    */
-  async setState(state: any, result: any): Promise<void> {
-    if (state && state.file) {
-      const file = this.app.vault.getAbstractFileByPath(state.file);
+  async setState(state: unknown, result: any): Promise<void> {
+    const viewState = state as ViewState;
+    const viewResult = result as ViewResult;
+    
+    if (viewState && viewState.file) {
+      const file = this.app.vault.getAbstractFileByPath(viewState.file);
       if (file instanceof TFile && file.extension === 'xmind') {
         await this.setXMindFile(file);
       }
     }
     
     // 处理直接文件关联的情况
-    if (result && result.file) {
-      const file = this.app.vault.getAbstractFileByPath(result.file);
+    if (viewResult && viewResult.file) {
+      const file = this.app.vault.getAbstractFileByPath(viewResult.file);
       if (file instanceof TFile && file.extension === 'xmind') {
         await this.setXMindFile(file);
       }
@@ -264,7 +268,7 @@ export class XMindView extends ItemView {
    */
   private async getXMindEmbedViewer(): Promise<any> {
     if (XMindView.viewerLibLoaded) {
-      return (window as any).XMindEmbedViewer;
+      return (window as ObsidianWindow).XMindEmbedViewer;
     }
     
     if (XMindView.viewerLibPromise) {
@@ -280,9 +284,10 @@ export class XMindView extends ItemView {
   private async loadXMindEmbedViewer(): Promise<any> {
     try {
       // 检查是否已经加载
-      if ((window as any).XMindEmbedViewer) {
-        XMindView.viewerLibLoaded = true;
-        return (window as any).XMindEmbedViewer;
+          const win = window as ObsidianWindow;
+    if (win.XMindEmbedViewer) {
+      XMindView.viewerLibLoaded = true;
+      return win.XMindEmbedViewer;
       }
       
       // 尝试从 CDN 加载
@@ -299,8 +304,8 @@ export class XMindView extends ItemView {
           XMindView.viewerLibLoaded = true;
           
           // 验证库是否正确加载
-          if ((window as any).XMindEmbedViewer) {
-            resolve((window as any).XMindEmbedViewer);
+                  if (win.XMindEmbedViewer) {
+          resolve(win.XMindEmbedViewer);
           } else {
             reject(new Error(i18n.t('errors.viewerLibraryUnavailable')));
           }
@@ -705,8 +710,9 @@ export class XMindView extends ItemView {
 
     try {
       const { shell } = require('electron');
-      const filePath = (this.app.vault.adapter as any).path.join(
-        (this.app.vault.adapter as any).basePath, 
+      const adapter = this.app.vault.adapter as unknown as ObsidianVaultAdapter;
+      const filePath = adapter.path.join(
+        adapter.basePath, 
         this.xmindFile.path
       );
       

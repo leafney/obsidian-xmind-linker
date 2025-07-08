@@ -3,7 +3,7 @@ import { XMindView, XMIND_VIEW_TYPE } from './src/viewer/xmind-viewer';
 import { XMindLinkerSettingTab, DEFAULT_SETTINGS } from './src/core/settings';
 import { ThumbnailExtractor } from './src/file-handler/thumbnail-extractor';
 import { i18n } from './src/core/i18n';
-import type { XMindViewerSettings } from './src/types';
+import type { XMindViewerSettings, ObsidianVaultAdapter } from './src/types';
 
 export default class XMindLinkerPlugin extends Plugin {
   settings: XMindViewerSettings;
@@ -581,8 +581,9 @@ export default class XMindLinkerPlugin extends Plugin {
   private async openInSystem(file: TFile): Promise<void> {
     try {
       const { shell } = require('electron');
-      const filePath = (this.app.vault.adapter as any).path.join(
-        (this.app.vault.adapter as any).basePath, 
+      const adapter = this.app.vault.adapter as unknown as ObsidianVaultAdapter;
+      const filePath = adapter.path.join(
+        adapter.basePath, 
         file.path
       );
       

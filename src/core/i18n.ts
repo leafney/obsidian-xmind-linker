@@ -537,7 +537,7 @@ export class I18nManager {
    */
   t(key: string): string {
     const keys = key.split('.');
-    let result: any = this.texts;
+    let result: any = this.texts; // 保留 any 类型用于动态键值访问
     
     for (const k of keys) {
       if (result && typeof result === 'object' && k in result) {
@@ -556,7 +556,12 @@ export class I18nManager {
    */
   private detectLanguage(): void {
     // 检测 Obsidian 的语言设置
-    const obsidianLang = (window as any).moment?.locale?.() || 'en';
+    const obsidianWindow = window as Window & {
+      moment?: {
+        locale?: () => string;
+      };
+    };
+    const obsidianLang = obsidianWindow.moment?.locale?.() || 'en';
     
     // 检测浏览器语言
     const browserLang = navigator.language.toLowerCase();

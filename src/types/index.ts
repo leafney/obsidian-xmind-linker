@@ -84,4 +84,58 @@ export interface DetailedCacheStats {
 export interface CacheStats {
   count: number;
   size: number;
+}
+
+// Obsidian 相关接口扩展
+export interface ObsidianWindow extends Window {
+  moment?: {
+    locale?: () => string;
+  };
+  XMindEmbedViewer?: any; // XMind 查看器库是外部依赖，保留 any 类型
+}
+
+export interface XMindEmbedViewer {
+  load: (buffer: ArrayBuffer) => Promise<void>;
+  resize: () => void;
+  setFitMap: () => void;
+  setZoomScale: (scale: number) => void;
+  getZoomScale: () => number;
+  addEventListener: (event: string, callback: (payload?: any) => void) => void;
+  removeEventListener: (event: string, callback: (payload?: any) => void) => void;
+}
+
+export interface XMindEmbedViewerConstructor {
+  new (options: {
+    el: HTMLElement;
+    region?: string;
+    width?: string;
+    height?: string;
+    styles?: Record<string, string>;
+  }): XMindEmbedViewer;
+}
+
+export interface ObsidianVaultAdapter {
+  path: {
+    join: (...paths: string[]) => string;
+  };
+  basePath: string;
+  readBinary: (path: string) => Promise<ArrayBuffer>;
+  getResourcePath: (path: string) => string;
+}
+
+export interface WorkspaceLeafExtended {
+  file?: any;
+  getViewState?: () => {
+    state?: {
+      file?: string;
+    };
+  };
+}
+
+export interface ViewState extends Record<string, unknown> {
+  file?: string | null;
+}
+
+export interface ViewResult {
+  file?: string;
 } 
