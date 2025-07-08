@@ -1,6 +1,6 @@
 import { TFile, Vault } from 'obsidian';
 import { XMindParser } from './xmind-parser';
-import type { ThumbnailCache, ThumbnailExtractionResult, XMindViewerSettings } from '../types';
+import type { ThumbnailCache, ThumbnailExtractionResult, XMindViewerSettings, DetailedCacheStats, CacheStats } from '../types';
 
 export class ThumbnailExtractor {
   private vault: Vault;
@@ -294,14 +294,166 @@ export class ThumbnailExtractor {
   }
 
   /**
-   * 获取缓存统计信息
+   * 获取缓存统计信息（简化版本，向后兼容）
    */
-  getCacheStats(): { count: number; size: number } {
+  getCacheStats(): CacheStats {
     const totalSize = Object.values(this.cache).reduce((sum, entry) => sum + (entry.size || 0), 0);
     return {
       count: Object.keys(this.cache).length,
       size: Math.round(totalSize / 1024 / 1024 * 100) / 100 // MB，保留两位小数
     };
+  }
+
+  /**
+   * 获取详细的缓存统计信息
+   */
+  async getDetailedCacheStats(): Promise<DetailedCacheStats> {
+    // 记录在 cache.json 中的缓存统计
+    const recordedStats = this.getCacheStats();
+    
+    // 扫描实际缓存目录中的所有文件
+    const actualStats = await this.scanActualCacheDirectory();
+    
+    // 计算孤立的缓存文件
+    const orphanedStats = await this.findOrphanedCacheFiles();
+    
+    return {
+      recorded: recordedStats,
+      actual: actualStats,
+      orphaned: orphanedStats
+    };
+  }
+
+  /**
+   * 扫描实际缓存目录中的所有文件
+   */
+  private async scanActualCacheDirectory(): Promise<CacheStats> {
+    try {
+      if (!(await this.vault.adapter.exists(this.cacheDir))) {
+        return { count: 0, size: 0 };
+      }
+
+      const files = await this.vault.adapter.list(this.cacheDir);
+      let totalSize = 0;
+      let count = 0;
+
+      for (const file of files.files) {
+        // 跳过 cache.json 文件
+        if (file.endsWith('cache.json')) {
+          continue;
+        }
+        
+        try {
+          const stat = await this.vault.adapter.stat(file);
+          if (stat && stat.size) {
+            totalSize += stat.size;
+            count++;
+          }
+        } catch (error) {
+          console.warn(`无法获取文件大小: ${file}`, error);
+        }
+      }
+
+      return {
+        count,
+        size: Math.round(totalSize / 1024 / 1024 * 100) / 100 // MB，保留两位小数
+      };
+    } catch (error) {
+      console.error('扫描缓存目录失败:', error);
+      return { count: 0, size: 0 };
+    }
+  }
+
+  /**
+   * 查找孤立的缓存文件
+   */
+  private async findOrphanedCacheFiles(): Promise<{ count: number; size: number; files: string[] }> {
+    try {
+      if (!(await this.vault.adapter.exists(this.cacheDir))) {
+        return { count: 0, size: 0, files: [] };
+      }
+
+      const files = await this.vault.adapter.list(this.cacheDir);
+      const recordedPaths = new Set(Object.values(this.cache).map(entry => entry.thumbnailPath));
+      
+      let orphanedSize = 0;
+      const orphanedFiles: string[] = [];
+
+      for (const file of files.files) {
+        // 跳过 cache.json 文件
+        if (file.endsWith('cache.json')) {
+          continue;
+        }
+        
+        // 检查是否为孤立文件
+        if (!recordedPaths.has(file)) {
+          orphanedFiles.push(file);
+          
+          try {
+            const stat = await this.vault.adapter.stat(file);
+            if (stat && stat.size) {
+              orphanedSize += stat.size;
+            }
+          } catch (error) {
+            console.warn(`无法获取孤立文件大小: ${file}`, error);
+          }
+        }
+      }
+
+      return {
+        count: orphanedFiles.length,
+        size: Math.round(orphanedSize / 1024 / 1024 * 100) / 100, // MB，保留两位小数
+        files: orphanedFiles
+      };
+    } catch (error) {
+      console.error('查找孤立缓存文件失败:', error);
+      return { count: 0, size: 0, files: [] };
+    }
+  }
+
+  /**
+   * 清理孤立的缓存文件
+   */
+  async cleanupOrphanedCache(): Promise<{ cleaned: number; size: number; errors: string[] }> {
+    try {
+      const orphanedStats = await this.findOrphanedCacheFiles();
+      const errors: string[] = [];
+      let cleanedCount = 0;
+      let cleanedSize = 0;
+
+      for (const filePath of orphanedStats.files) {
+        try {
+          // 获取文件大小
+          const stat = await this.vault.adapter.stat(filePath);
+          const fileSize = stat?.size || 0;
+          
+          // 删除文件
+          await this.vault.adapter.remove(filePath);
+          
+          cleanedCount++;
+          cleanedSize += fileSize;
+          
+          console.log(`已清理孤立缓存文件: ${filePath}`);
+        } catch (error) {
+          const errorMsg = `清理孤立文件失败 ${filePath}: ${error.message}`;
+          console.error(errorMsg);
+          errors.push(errorMsg);
+        }
+      }
+
+      return {
+        cleaned: cleanedCount,
+        size: Math.round(cleanedSize / 1024 / 1024 * 100) / 100, // MB，保留两位小数
+        errors
+      };
+    } catch (error) {
+      console.error('清理孤立缓存失败:', error);
+      return {
+        cleaned: 0,
+        size: 0,
+        errors: [`清理孤立缓存失败: ${error.message}`]
+      };
+    }
   }
 
   /**

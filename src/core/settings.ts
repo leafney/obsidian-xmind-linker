@@ -149,15 +149,75 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
           }
         }));
 
-    // 缓存管理设置
-    const cacheStats = this.plugin.thumbnailExtractor?.getCacheStats() || { count: 0, size: 0 };
+    // 缓存管理设置 - 放在缩略图设置分组内
+    containerEl.createEl('h4', { text: i18n.t('settings.thumbnailSettings.detailedCacheStats.title') });
     
+    // 先创建缓存统计信息容器
+    const statsContainer = containerEl.createEl('div', { cls: 'cache-stats-container' });
+    
+    // 创建加载提示
+    const loadingEl = statsContainer.createEl('div', { cls: 'cache-stat-item' });
+    loadingEl.createEl('span', { text: i18n.t('settings.thumbnailSettings.detailedCacheStats.loading') });
+    
+    // 获取详细的缓存统计信息
+    if (this.plugin.thumbnailExtractor) {
+      this.plugin.thumbnailExtractor.getDetailedCacheStats().then(detailedStats => {
+        // 清空容器内容
+        statsContainer.empty();
+        
+        // 记录的缓存统计
+        const recordedEl = statsContainer.createEl('div', { cls: 'cache-stat-item' });
+        recordedEl.createEl('span', { text: i18n.t('settings.thumbnailSettings.detailedCacheStats.recorded')
+          .replace('{count}', detailedStats.recorded.count.toString())
+          .replace('{size}', detailedStats.recorded.size.toString()) });
+        
+        // 实际缓存统计
+        const actualEl = statsContainer.createEl('div', { cls: 'cache-stat-item' });
+        actualEl.createEl('span', { text: i18n.t('settings.thumbnailSettings.detailedCacheStats.actual')
+          .replace('{count}', detailedStats.actual.count.toString())
+          .replace('{size}', detailedStats.actual.size.toString()) });
+        
+        // 孤立缓存统计
+        const orphanedEl = statsContainer.createEl('div', { cls: 'cache-stat-item' });
+        orphanedEl.createEl('span', { 
+          text: i18n.t('settings.thumbnailSettings.detailedCacheStats.orphaned')
+            .replace('{count}', detailedStats.orphaned.count.toString())
+            .replace('{size}', detailedStats.orphaned.size.toString()),
+          cls: detailedStats.orphaned.count > 0 ? 'cache-warning' : ''
+        });
+        
+        // 如果有孤立文件，显示警告信息
+        if (detailedStats.orphaned.count > 0) {
+          const warningEl = statsContainer.createEl('div', { cls: 'cache-warning-msg' });
+          warningEl.createEl('span', { text: '⚠️ ' + i18n.t('settings.thumbnailSettings.detailedCacheStats.warning') });
+        }
+      }).catch(error => {
+        console.error('获取详细缓存统计失败:', error);
+        // 显示错误信息
+        statsContainer.empty();
+        const errorEl = statsContainer.createEl('div', { cls: 'cache-stat-item' });
+        errorEl.createEl('span', { 
+          text: i18n.t('settings.thumbnailSettings.detailedCacheStats.error'), 
+          cls: 'cache-warning' 
+        });
+      });
+    } else {
+      // 如果没有缩略图提取器，显示提示信息
+      statsContainer.empty();
+      const noExtractorEl = statsContainer.createEl('div', { cls: 'cache-stat-item' });
+      noExtractorEl.createEl('span', { 
+        text: i18n.t('settings.thumbnailSettings.detailedCacheStats.notInitialized'), 
+        cls: 'cache-warning' 
+      });
+    }
+    
+    // 清理所有缓存按钮
     new Setting(containerEl)
-      .setName(i18n.t('settings.thumbnailSettings.cacheStats.name'))
-      .setDesc(i18n.t('settings.thumbnailSettings.cacheStats.desc').replace('{count}', cacheStats.count.toString()).replace('{size}', cacheStats.size.toString()))
+      .setName(i18n.t('settings.thumbnailSettings.detailedCacheStats.clearAll.name'))
+      .setDesc(i18n.t('settings.thumbnailSettings.detailedCacheStats.clearAll.desc'))
       .addButton(button => button
-        .setButtonText(i18n.t('settings.thumbnailSettings.cacheStats.buttonText'))
-        .setTooltip(i18n.t('settings.thumbnailSettings.cacheStats.buttonTooltip'))
+        .setButtonText(i18n.t('settings.thumbnailSettings.detailedCacheStats.clearAll.buttonText'))
+        .setTooltip(i18n.t('settings.thumbnailSettings.detailedCacheStats.clearAll.buttonTooltip'))
         .onClick(async () => {
           try {
             if (this.plugin.thumbnailExtractor) {
@@ -167,11 +227,45 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
               // 显示成功消息
               new Notice(i18n.t('messages.cacheCleanupComplete'));
             } else {
-              new Notice('缩略图提取器未初始化');
+              new Notice(i18n.t('settings.thumbnailSettings.detailedCacheStats.notInitialized'));
             }
           } catch (error) {
             console.error('清理缓存失败:', error);
-            new Notice(`清理缓存失败: ${error.message}`);
+            new Notice(`${i18n.t('settings.thumbnailSettings.detailedCacheStats.error')}: ${error.message}`);
+          }
+        }));
+    
+    // 清理孤立缓存按钮
+    new Setting(containerEl)
+      .setName(i18n.t('settings.thumbnailSettings.detailedCacheStats.clearOrphaned.name'))
+      .setDesc(i18n.t('settings.thumbnailSettings.detailedCacheStats.clearOrphaned.desc'))
+      .addButton(button => button
+        .setButtonText(i18n.t('settings.thumbnailSettings.detailedCacheStats.clearOrphaned.buttonText'))
+        .setTooltip(i18n.t('settings.thumbnailSettings.detailedCacheStats.clearOrphaned.buttonTooltip'))
+        .onClick(async () => {
+          try {
+            if (this.plugin.thumbnailExtractor) {
+              const result = await this.plugin.thumbnailExtractor.cleanupOrphanedCache();
+              
+              if (result.cleaned > 0) {
+                new Notice(`已清理 ${result.cleaned} 个孤立缓存文件，释放 ${result.size} MB 空间`);
+              } else {
+                new Notice('没有发现孤立缓存文件');
+              }
+              
+              if (result.errors.length > 0) {
+                console.error('清理孤立缓存时出现错误:', result.errors);
+                new Notice(`清理完成，但有 ${result.errors.length} 个文件清理失败`);
+              }
+              
+              // 刷新显示
+              this.display();
+            } else {
+              new Notice(i18n.t('settings.thumbnailSettings.detailedCacheStats.notInitialized'));
+            }
+          } catch (error) {
+            console.error('清理孤立缓存失败:', error);
+            new Notice(`${i18n.t('settings.thumbnailSettings.detailedCacheStats.error')}: ${error.message}`);
           }
         }));
 

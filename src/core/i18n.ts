@@ -71,6 +71,29 @@ export interface I18nTexts {
         buttonText: string;
         buttonTooltip: string;
       };
+      // 详细缓存统计
+      detailedCacheStats: {
+        title: string;
+        loading: string;
+        recorded: string;
+        actual: string;
+        orphaned: string;
+        warning: string;
+        clearAll: {
+          name: string;
+          desc: string;
+          buttonText: string;
+          buttonTooltip: string;
+        };
+        clearOrphaned: {
+          name: string;
+          desc: string;
+          buttonText: string;
+          buttonTooltip: string;
+        };
+        error: string;
+        notInitialized: string;
+      };
     };
     otherSettings: {
       groupTitle: string;
@@ -217,6 +240,29 @@ const EN_TEXTS: I18nTexts = {
         desc: 'Current cache: {count} files, {size} MB',
         buttonText: 'Clear All Cache',
         buttonTooltip: 'Delete all cached thumbnails'
+      },
+      // 详细缓存统计
+      detailedCacheStats: {
+        title: 'Detailed Cache Statistics',
+        loading: 'Loading cache statistics...',
+        recorded: 'Recorded: {count} files, {size} MB',
+        actual: 'Actual: {count} files, {size} MB',
+        orphaned: 'Orphaned: {count} files, {size} MB',
+        warning: 'Orphaned files are historical thumbnail files created when XMind files were updated. You can safely clean them to free up space.',
+        clearAll: {
+          name: 'Clear All Cache',
+          desc: 'Delete all cached thumbnails',
+          buttonText: 'Clear All Cache',
+          buttonTooltip: 'Delete all cached thumbnails'
+        },
+        clearOrphaned: {
+          name: 'Clear Orphaned Cache',
+          desc: 'Delete orphaned cached thumbnails',
+          buttonText: 'Clear Orphaned Cache',
+          buttonTooltip: 'Delete orphaned cached thumbnails'
+        },
+        error: 'Failed to load cache statistics.',
+        notInitialized: 'Cache statistics not initialized. Please try again later.'
       }
     },
     otherSettings: {
@@ -356,6 +402,29 @@ const ZH_CN_TEXTS: I18nTexts = {
         desc: '当前缓存: {count} 个文件, {size} MB',
         buttonText: '清理所有缓存',
         buttonTooltip: '删除所有缓存的缩略图'
+      },
+      // 详细缓存统计
+      detailedCacheStats: {
+        title: '详细缓存统计',
+        loading: '加载缓存统计中...',
+        recorded: '已记录: {count} 个文件, {size} MB',
+        actual: '实际: {count} 个文件, {size} MB',
+        orphaned: '孤立: {count} 个文件, {size} MB',
+        warning: '孤立文件是历史缩略图文件，当 XMind 文件更新时创建。您可以安全地清理它们以释放空间。',
+        clearAll: {
+          name: '清理所有缓存',
+          desc: '删除所有缓存的缩略图',
+          buttonText: '清理所有缓存',
+          buttonTooltip: '删除所有缓存的缩略图'
+        },
+        clearOrphaned: {
+          name: '清理孤立缓存',
+          desc: '删除孤立缓存的缩略图',
+          buttonText: '清理孤立缓存',
+          buttonTooltip: '删除孤立缓存的缩略图'
+        },
+        error: '加载缓存统计失败。请稍后再试。',
+        notInitialized: '缓存统计未初始化。请稍后再试。'
       }
     },
     otherSettings: {

@@ -704,3 +704,53 @@
     break-inside: avoid;
   }
 } 
+
+/* 缓存统计信息样式 */
+.cache-stats-container {
+  margin: 10px 0;
+  padding: 10px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.cache-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 5px 0;
+  padding: 2px 0;
+}
+
+.cache-stat-item span {
+  color: var(--text-muted);
+}
+
+.cache-stat-item strong {
+  color: var(--text-normal);
+}
+
+.cache-warning {
+  color: var(--text-warning) !important;
+}
+
+.cache-warning-msg {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: var(--background-modifier-warning);
+  border-radius: 4px;
+  border-left: 3px solid var(--text-warning);
+}
+
+.cache-warning-msg span {
+  color: var(--text-warning);
+  font-size: 0.9em;
+}
+
+/* 设置页面的缓存统计标题 */
+.setting-item-info h4 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: var(--text-normal);
+  font-weight: 600;
+} 
