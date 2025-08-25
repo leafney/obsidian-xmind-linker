@@ -1,4 +1,4 @@
-import { Plugin, TFile, WorkspaceLeaf, MarkdownPostProcessorContext, Notice } from 'obsidian';
+import { Plugin, TFile, WorkspaceLeaf, MarkdownPostProcessorContext, Notice, addIcon, setIcon } from 'obsidian';
 import { XMindView, XMIND_VIEW_TYPE } from './src/viewer/xmind-viewer';
 import { XMindLinkerSettingTab, DEFAULT_SETTINGS } from './src/core/settings';
 import { ThumbnailExtractor } from './src/file-handler/thumbnail-extractor';
@@ -8,17 +8,38 @@ import type { XMindViewerSettings, ObsidianVaultAdapter } from './src/types';
 export default class XMindLinkerPlugin extends Plugin {
   settings: XMindViewerSettings;
   thumbnailExtractor: ThumbnailExtractor;
-  private openedFiles: Map<string, WorkspaceLeaf> = new Map();
-  private originalOpenLinkText: any;
 
   async onload() {
     // 加载设置
     await this.loadSettings();
     
-    // 初始化国际化
-    i18n.setLanguage(this.settings.language);
+    // 初始化国际化 - 优先使用 Obsidian 的语言设置，回退到用户设置
+    try {
+      const obsidianLang = this.app.getLanguage?.();
+      if (obsidianLang) {
+        // 将 Obsidian 语言代码映射到支持的语言
+        const langMap: Record<string, 'en' | 'zh-cn'> = {
+          'zh': 'zh-cn',
+          'zh-cn': 'zh-cn', 
+          'zh-hans': 'zh-cn',
+          'zh-sg': 'zh-cn',
+          'en': 'en',
+          'en-us': 'en',
+          'en-gb': 'en'
+        };
+        const mappedLang = langMap[obsidianLang.toLowerCase()] || 'en';
+        i18n.setLanguage(mappedLang);
+      } else {
+        // 回退到用户设置
+        i18n.setLanguage(this.settings.language);
+      }
+    } catch (error) {
+      // 如果 getLanguage 不可用，回退到用户设置
+      i18n.setLanguage(this.settings.language);
+    }
     
-
+    // 注册自定义图标
+    this.registerXMindIcon();
 
     // 初始化缩略图提取器
     this.thumbnailExtractor = new ThumbnailExtractor(
@@ -60,22 +81,28 @@ export default class XMindLinkerPlugin extends Plugin {
     // 注册事件监听器
     this.registerEventListeners();
 
-    // 重写文件打开处理，优化用户体验
-    this.overrideFileOpenBehavior();
   }
 
   async onunload() {
 
     
-    // 恢复原始的 openLinkText 方法
-    if (this.originalOpenLinkText) {
-      this.app.workspace.openLinkText = this.originalOpenLinkText;
-    }
     
     // 清理无效缓存
     if (this.thumbnailExtractor) {
       await this.thumbnailExtractor.cleanupInvalidCache();
     }
+  }
+
+  /**
+   * 注册 XMind 图标
+   */
+  private registerXMindIcon(): void {
+    addIcon('xmind-file', `<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="8" y="8" width="48" height="48" rx="4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="2"/>
+      <path d="M20 32L28 24L36 32L44 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="32" cy="40" r="2" fill="currentColor"/>
+      <text x="32" y="52" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.7">XMind</text>
+    </svg>`);
   }
 
   /**
@@ -122,8 +149,6 @@ export default class XMindLinkerPlugin extends Plugin {
         if (file instanceof TFile && file.extension === 'xmind') {
           // 清理无效缓存
           this.thumbnailExtractor.cleanupInvalidCache();
-          // 清理打开文件记录
-          this.openedFiles.delete(file.path);
         }
       })
     );
@@ -250,10 +275,13 @@ export default class XMindLinkerPlugin extends Plugin {
       cls: `xmind-thumbnail size-${this.getThumbnailSize()}`,
       attr: {
         src: this.app.vault.adapter.getResourcePath(thumbnailPath),
-        alt: file.basename,
-        style: `max-width: ${this.settings.thumbnailMaxWidth}px; max-height: ${this.settings.thumbnailMaxHeight}px;`
+        alt: file.basename
       }
     });
+    
+    // 使用 CSS 自定义属性设置动态样式
+    img.style.setProperty('--thumbnail-max-width', `${this.settings.thumbnailMaxWidth}px`);
+    img.style.setProperty('--thumbnail-max-height', `${this.settings.thumbnailMaxHeight}px`);
 
     // 添加质量指示器
     if (this.settings.thumbnailQuality !== 'medium') {
@@ -291,12 +319,8 @@ export default class XMindLinkerPlugin extends Plugin {
     const iconDiv = fallbackDiv.createDiv({
       cls: 'xmind-fallback-icon'
     });
-    // 使用 DOM API 安全地创建 SVG 元素
-    const svgString = this.thumbnailExtractor.createFallbackIcon();
-    const parser = new DOMParser();
-    const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
-    const svgElement = svgDoc.documentElement;
-    iconDiv.appendChild(svgElement);
+    // 使用 Obsidian 的 setIcon API
+    setIcon(iconDiv, 'xmind-file');
 
     const filename = fallbackDiv.createDiv({
       cls: 'xmind-fallback-filename',
@@ -371,7 +395,15 @@ export default class XMindLinkerPlugin extends Plugin {
   private checkAndHandleDuplicateViews(newLeaf: WorkspaceLeaf): void {
     // 等待视图完全初始化
     const checkRepeatedly = (attempts = 0) => {
-      const newView = newLeaf.view as XMindView;
+      if (!newLeaf.view || newLeaf.view.getViewType() !== XMIND_VIEW_TYPE) {
+        if (attempts < 10) {
+          setTimeout(() => checkRepeatedly(attempts + 1), 50);
+          return;
+        }
+        return;
+      }
+      
+      const newView = this.getXMindView(newLeaf);
       const newFile = newView?.getFile();
       
       if (!newFile && attempts < 10) {
@@ -390,8 +422,9 @@ export default class XMindLinkerPlugin extends Plugin {
       // 查找打开相同文件的其他视图（排除当前新创建的）
       const sameFileLeaves = allXMindLeaves.filter(leaf => {
         if (leaf === newLeaf) return false;
+        if (!leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) return false;
         
-        const view = leaf.view as XMindView;
+        const view = this.getXMindView(leaf);
         const file = view?.getFile();
         return file && file.path === newFile.path;
       });
@@ -404,46 +437,13 @@ export default class XMindLinkerPlugin extends Plugin {
         newLeaf.detach();
         this.app.workspace.setActiveLeaf(existingLeaf);
         
-        // 更新记录
-        this.openedFiles.set(newFile.path, existingLeaf);
       } else {
-        // 没有重复，记录新视图
-        this.openedFiles.set(newFile.path, newLeaf);
       }
     };
     
     checkRepeatedly();
   }
 
-  /**
-   * 重写文件打开行为，优化用户体验
-   */
-  private overrideFileOpenBehavior(): void {
-    // 保存原始的 openLinkText 方法
-    this.originalOpenLinkText = this.app.workspace.openLinkText.bind(this.app.workspace);
-    
-    // 重写 openLinkText 方法
-    this.app.workspace.openLinkText = async (linktext: string, sourcePath: string, newLeaf?: boolean, openViewState?: any) => {
-      // 检查是否是 XMind 文件
-      if (linktext.endsWith('.xmind')) {
-        // 查找文件
-        const file = this.app.metadataCache.getFirstLinkpathDest(linktext, sourcePath);
-        if (file && file.extension === 'xmind') {
-          // 检查是否已经有打开这个文件的视图
-          const existingLeaf = this.findExistingXMindView(file);
-          if (existingLeaf) {
-            this.app.workspace.setActiveLeaf(existingLeaf);
-            return existingLeaf;
-          }
-        }
-      }
-      
-      // 如果不是 XMind 文件或没有重复，使用原始方法
-      return this.originalOpenLinkText(linktext, sourcePath, newLeaf, openViewState);
-    };
-
-
-  }
 
   /**
    * 处理重复的 XMind 视图
@@ -460,8 +460,10 @@ export default class XMindLinkerPlugin extends Plugin {
     const fileGroups = new Map<string, WorkspaceLeaf[]>();
     
     xmindLeaves.forEach(leaf => {
-      const view = leaf.view as XMindView;
-      const file = view.getFile();
+      if (!leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) return;
+      
+      const view = this.getXMindView(leaf);
+      const file = view?.getFile();
       
       if (file) {
         const filePath = file.path;
@@ -483,11 +485,7 @@ export default class XMindLinkerPlugin extends Plugin {
           leaf.detach();
         });
         
-        // 更新记录
-        this.openedFiles.set(filePath, keepLeaf);
       } else if (leaves.length === 1) {
-        // 只有一个视图，更新记录
-        this.openedFiles.set(filePath, leaves[0]);
       }
     });
   }
@@ -511,51 +509,43 @@ export default class XMindLinkerPlugin extends Plugin {
       state: { file: file.path }
     });
 
-    // 记录打开的文件
-    this.openedFiles.set(file.path, leaf);
+  }
+
+  /**
+   * 安全获取 XMind 视图，处理 DeferredView 情况
+   */
+  private getXMindView(leaf: WorkspaceLeaf): XMindView | null {
+    if (!leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) {
+      return null;
+    }
+    
+    // 检查是否是 DeferredView，如果是则返回 null
+    // DeferredView 在视图实际显示之前不会是真正的 XMindView
+    if (leaf.view.constructor.name === 'DeferredView') {
+      return null;
+    }
+    
+    return leaf.view as XMindView;
   }
 
   /**
    * 查找已经打开指定文件的 XMind 视图
    */
   private findExistingXMindView(file: TFile): WorkspaceLeaf | null {
-    // 首先检查我们自己维护的记录
-    const recordedLeaf = this.openedFiles.get(file.path);
-    if (recordedLeaf && recordedLeaf.view && recordedLeaf.view.getViewType() === XMIND_VIEW_TYPE) {
-      const view = recordedLeaf.view as XMindView;
-      if (view.getFile()?.path === file.path) {
-        return recordedLeaf;
-      }
-    }
-
     // 遍历所有工作区的叶子节点，查找是否有打开相同文件的 XMind 视图
     const leaves = this.app.workspace.getLeavesOfType(XMIND_VIEW_TYPE);
     for (const leaf of leaves) {
-      const view = leaf.view as XMindView;
-      if (view.getFile()?.path === file.path) {
-        // 更新我们的记录
-        this.openedFiles.set(file.path, leaf);
-        return leaf;
+      if (leaf.view?.getViewType() === XMIND_VIEW_TYPE) {
+        const view = this.getXMindView(leaf);
+        if (view?.getFile()?.path === file.path) {
+          return leaf;
+        }
       }
     }
 
     return null;
   }
 
-  /**
-   * 清理已关闭的标签页记录
-   */
-  private cleanupClosedTabs(): void {
-    const activeLeaves = this.app.workspace.getLeavesOfType(XMIND_VIEW_TYPE);
-    const activeLeafSet = new Set(activeLeaves);
-
-    for (const [filePath, leaf] of this.openedFiles.entries()) {
-      // 如果叶子节点不在活动叶子节点列表中，或者视图类型不匹配，则清理
-      if (!activeLeafSet.has(leaf) || !leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) {
-        this.openedFiles.delete(filePath);
-      }
-    }
-  }
 
 
 
@@ -580,39 +570,17 @@ export default class XMindLinkerPlugin extends Plugin {
    */
   private async openInSystem(file: TFile): Promise<void> {
     try {
-      const { shell } = require('electron');
       const adapter = this.app.vault.adapter as unknown as ObsidianVaultAdapter;
       const filePath = adapter.path.join(
         adapter.basePath, 
         file.path
       );
       
-      // 使用 shell.openPath 打开文件
-      const result = await shell.openPath(filePath);
+      // 使用 Obsidian API 打开文件（跨平台兼容）
+      await this.app.openWithDefaultApp(filePath);
       
-      // 检查打开结果
-      if (result) {
-        // result 不为空字符串表示有错误
-        console.error('系统打开失败:', result);
-        
-        // 根据错误信息判断具体原因
-        let errorMessage: string;
-        if (result.includes('No application') || result.includes('没有应用') || 
-            result.includes('not found') || result.includes('找不到')) {
-          errorMessage = i18n.t('errors.systemOpenNoApp');
-        } else if (result.includes('Permission') || result.includes('权限') || 
-                   result.includes('denied') || result.includes('拒绝')) {
-          errorMessage = i18n.t('errors.systemOpenPermissionDenied');
-        } else {
-          errorMessage = `${i18n.t('errors.systemOpenFailed')}: ${result}`;
-        }
-        
-        // 显示错误通知
-        new Notice(errorMessage, 5000);
-      } else {
-        // 成功打开，显示成功通知
-        new Notice(i18n.t('messages.systemOpenSuccess'), 3000);
-      }
+      // 成功打开，显示成功通知
+      new Notice(i18n.t('messages.systemOpenSuccess'), 3000);
     } catch (error) {
       console.error('系统打开异常:', error);
       

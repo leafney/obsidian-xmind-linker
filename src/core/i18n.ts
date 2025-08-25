@@ -1,3 +1,5 @@
+import { Platform } from 'obsidian';
+
 export type SupportedLanguage = 'en' | 'zh-cn';
 
 export interface I18nTexts {
@@ -174,21 +176,21 @@ export interface I18nTexts {
 // 英文语言包
 const EN_TEXTS: I18nTexts = {
   settings: {
-    title: 'XMind Linker Settings',
+    title: 'XMind Linker Configuration',
     enableThumbnailExtraction: {
-      name: 'Enable Thumbnail Extraction',
+      name: 'Enable thumbnail extraction',
       desc: 'Automatically extract thumbnails from XMind files for preview'
     },
     defaultRegion: {
-      name: 'Default Region',
+      name: 'Default region',
       desc: 'Choose the default region for XMind viewer (affects loading speed)'
     },
     enableSystemIntegration: {
-      name: 'Enable System Integration',
+      name: 'Enable system integration',
       desc: 'Allow opening XMind files with system default application'
     },
     thumbnailCacheDir: {
-      name: 'Thumbnail Cache Directory',
+      name: 'Thumbnail cache directory',
       desc: 'Directory name for storing extracted thumbnails'
     },
     language: {
@@ -197,7 +199,7 @@ const EN_TEXTS: I18nTexts = {
     },
     regionOptions: {
       global: 'Global',
-      cn: 'China Mainland'
+      cn: 'China mainland'
     },
     languageOptions: {
       en: 'English',
@@ -205,60 +207,60 @@ const EN_TEXTS: I18nTexts = {
     },
     // 新增缩略图设置
     thumbnailSettings: {
-      groupTitle: 'Thumbnail Settings',
+      groupTitle: 'Thumbnail',
       enableThumbnailFallback: {
-        name: 'Enable Thumbnail Fallback',
+        name: 'Enable thumbnail fallback',
         desc: 'Show default icon when thumbnail extraction fails'
       },
       showThumbnailLoadingIndicator: {
-        name: 'Show Loading Indicator',
+        name: 'Show loading indicator',
         desc: 'Display loading animation during thumbnail extraction'
       },
       thumbnailMaxWidth: {
-        name: 'Thumbnail Max Width',
+        name: 'Thumbnail max width',
         desc: 'Maximum width for extracted thumbnails (pixels)'
       },
       thumbnailMaxHeight: {
-        name: 'Thumbnail Max Height',
+        name: 'Thumbnail max height',
         desc: 'Maximum height for extracted thumbnails (pixels)'
       },
       thumbnailQuality: {
-        name: 'Thumbnail Quality',
+        name: 'Thumbnail quality',
         desc: 'Quality level for extracted thumbnails',
         options: {
-          low: 'Low (Faster)',
-          medium: 'Medium (Balanced)',
-          high: 'High (Clearer)'
+          low: 'Low (faster)',
+          medium: 'Medium (balanced)',
+          high: 'High (clearer)'
         }
       },
       maxCacheSize: {
-        name: 'Max Cache Size',
+        name: 'Max cache size',
         desc: 'Maximum size for thumbnail cache (MB)'
       },
       cacheStats: {
-        name: 'Cache Statistics',
+        name: 'Cache statistics',
         desc: 'Current cache: {count} files, {size} MB',
-        buttonText: 'Clear All Cache',
+        buttonText: 'Clear all cache',
         buttonTooltip: 'Delete all cached thumbnails'
       },
       // 详细缓存统计
       detailedCacheStats: {
-        title: 'Detailed Cache Statistics',
+        title: 'Detailed cache statistics',
         loading: 'Loading cache statistics...',
         recorded: 'Recorded: {count} files, {size} MB',
         actual: 'Actual: {count} files, {size} MB',
         orphaned: 'Orphaned: {count} files, {size} MB',
         warning: 'Orphaned files are historical thumbnail files created when XMind files were updated. You can safely clean them to free up space.',
         clearAll: {
-          name: 'Clear All Cache',
+          name: 'Clear all cache',
           desc: 'Delete all cached thumbnails',
-          buttonText: 'Clear All Cache',
+          buttonText: 'Clear all cache',
           buttonTooltip: 'Delete all cached thumbnails'
         },
         clearOrphaned: {
-          name: 'Clear Orphaned Cache',
+          name: 'Clear orphaned cache',
           desc: 'Delete orphaned cached thumbnails',
-          buttonText: 'Clear Orphaned Cache',
+          buttonText: 'Clear orphaned cache',
           buttonTooltip: 'Delete orphaned cached thumbnails'
         },
         error: 'Failed to load cache statistics.',
@@ -266,12 +268,12 @@ const EN_TEXTS: I18nTexts = {
       }
     },
     otherSettings: {
-      groupTitle: 'Other Settings'
+      groupTitle: 'Other'
     }
   },
   commands: {
-    extractThumbnail: 'Extract XMind Thumbnail',
-    cleanupCache: 'Clean Thumbnail Cache'
+    extractThumbnail: 'Extract XMind thumbnail',
+    cleanupCache: 'Clean thumbnail cache'
   },
   messages: {
     pluginLoaded: 'XMind Linker plugin loaded',
@@ -284,8 +286,8 @@ const EN_TEXTS: I18nTexts = {
     systemOpenSuccess: 'Opened with system application',
     unsupportedFile: 'Unsupported file format',
     openInXMind: 'Open in XMind',
-    extractThumbnail: 'Extract Thumbnail',
-    viewInPlugin: 'View in Plugin'
+    extractThumbnail: 'Extract thumbnail',
+    viewInPlugin: 'View in plugin'
   },
   viewer: {
     title: 'XMind Viewer',
@@ -298,9 +300,9 @@ const EN_TEXTS: I18nTexts = {
     loadingComplete: 'Loading complete!',
     loadingFailed: 'Loading failed',
     openInSystem: 'Open in XMind',
-    fitWindow: 'Fit Window',
-    actualSize: '100% Size',
-    actualSizeCenter: '100% Size & Center',
+    fitWindow: 'Fit window',
+    actualSize: '100% size',
+    actualSizeCenter: '100% size & center',
     refresh: 'Refresh',
     loadingTips: {
       firstLoad: 'First load may take some time...',
@@ -336,7 +338,7 @@ const EN_TEXTS: I18nTexts = {
 // 中文语言包
 const ZH_CN_TEXTS: I18nTexts = {
   settings: {
-    title: 'XMind Linker 设置',
+    title: 'XMind Linker 配置',
     enableThumbnailExtraction: {
       name: '启用缩略图提取',
       desc: '自动提取 XMind 文件中的缩略图用于预览'
@@ -367,7 +369,7 @@ const ZH_CN_TEXTS: I18nTexts = {
     },
     // 新增缩略图设置
     thumbnailSettings: {
-      groupTitle: '缩略图设置',
+      groupTitle: '缩略图',
       enableThumbnailFallback: {
         name: '启用缩略图备用方案',
         desc: '当缩略图提取失败时显示默认图标'
@@ -428,7 +430,7 @@ const ZH_CN_TEXTS: I18nTexts = {
       }
     },
     otherSettings: {
-      groupTitle: '其他设置'
+      groupTitle: '其他'
     }
   },
   commands: {
@@ -555,17 +557,6 @@ export class I18nManager {
    * 自动检测语言
    */
   private detectLanguage(): void {
-    // 检测 Obsidian 的语言设置
-    const obsidianWindow = window as Window & {
-      moment?: {
-        locale?: () => string;
-      };
-    };
-    const obsidianLang = obsidianWindow.moment?.locale?.() || 'en';
-    
-    // 检测浏览器语言
-    const browserLang = navigator.language.toLowerCase();
-    
     // 语言映射
     const langMap: Record<string, SupportedLanguage> = {
       'zh': 'zh-cn',
@@ -580,9 +571,24 @@ export class I18nManager {
     // 优先使用 Obsidian 语言设置
     let detectedLang: SupportedLanguage = 'en';
     
-    if (obsidianLang && langMap[obsidianLang]) {
-      detectedLang = langMap[obsidianLang];
-    } else if (browserLang && langMap[browserLang]) {
+    try {
+      // 尝试使用 Obsidian API 获取语言设置
+      if ((window as any).app && typeof (window as any).app.getLanguage === 'function') {
+        const obsidianLang = (window as any).app.getLanguage().toLowerCase();
+        if (obsidianLang && langMap[obsidianLang]) {
+          detectedLang = langMap[obsidianLang];
+          this.setLanguage(detectedLang);
+          return;
+        }
+      }
+    } catch (error) {
+      // getLanguage API 不可用或出错，继续其他检测方式
+    }
+    
+    // 回退到浏览器语言检测
+    const browserLang = navigator.language.toLowerCase();
+    
+    if (browserLang && langMap[browserLang]) {
       detectedLang = langMap[browserLang];
     } else {
       // 检查是否包含中文字符

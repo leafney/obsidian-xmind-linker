@@ -1,4 +1,4 @@
-# Obsidian XMind Linker
+# XMind Linker
 
 在 Obsidian 中查看 XMind 文件，并支持连接 XMind 软件打开进行编辑。
 

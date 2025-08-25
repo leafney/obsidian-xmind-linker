@@ -1,5 +1,20 @@
 /* XMind Linker Plugin Styles */
 
+/* CSS 自定义属性支持 */
+.xmind-thumbnail {
+  max-width: var(--thumbnail-max-width, 200px);
+  max-height: var(--thumbnail-max-height, 150px);
+}
+
+.xmind-progress-bar {
+  width: var(--progress-width, 0%);
+}
+
+.xmind-viewer-transitioning {
+  opacity: var(--opacity-value, 1);
+  transition: opacity var(--transition-duration, 0.3s) ease;
+}
+
 /* 通用样式类 - 用于替代内联样式 */
 .xmind-hidden {
   display: none !important;
@@ -806,7 +821,7 @@
 }
 
 /* 设置页面的缓存统计标题 */
-.setting-item-info h4 {
+.xmind-linker-settings .setting-item-info h4 {
   margin-top: 16px;
   margin-bottom: 8px;
   color: var(--text-normal);

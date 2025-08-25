@@ -1,4 +1,4 @@
-# Obsidian XMind Linker
+# XMind Linker
 
 [![Release](https://github.com/leafney/obsidian-xmind-linker/workflows/Release/badge.svg)](https://github.com/leafney/obsidian-xmind-linker/actions/workflows/release.yml)
 [![Latest Release](https://img.shields.io/github/v/release/leafney/obsidian-xmind-linker)](https://github.com/leafney/obsidian-xmind-linker/releases)

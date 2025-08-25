@@ -2,7 +2,9 @@ import { ItemView, WorkspaceLeaf, TFile } from 'obsidian';
 import { XMindParser } from '../file-handler/xmind-parser';
 import { i18n } from '../core/i18n';
 import type { XMindViewerSettings, XMindEmbedViewer, XMindEmbedViewerConstructor, WorkspaceLeafExtended, ViewState, ViewResult, ObsidianVaultAdapter, ObsidianWindow } from '../types';
+import type { ViewStateResult } from 'obsidian';
 import { Notice } from 'obsidian';
+import * as XMindEmbedViewerLib from 'xmind-embed-viewer';
 
 export const XMIND_VIEW_TYPE = 'xmind-viewer';
 
@@ -116,7 +118,7 @@ export class XMindView extends ItemView {
   /**
    * 设置视图状态
    */
-  async setState(state: unknown, result: any): Promise<void> {
+  async setState(state: unknown, result: ViewStateResult): Promise<void> {
     const viewState = state as ViewState;
     const viewResult = result as ViewResult;
     
@@ -134,12 +136,33 @@ export class XMindView extends ItemView {
         await this.setXMindFile(file);
       }
     }
+    
+    // 调用父类方法
+    return super.setState(state, result);
   }
 
   async onClose(): Promise<void> {
     // 清理查看器
     if (this.viewer) {
+      // 移除所有事件监听器
+      try {
+        this.viewer.removeEventListener('map-ready', () => {});
+        this.viewer.removeEventListener('zoom-change', () => {});
+        this.viewer.removeEventListener('sheet-switch', () => {});
+      } catch (error) {
+        // 忽略清理错误
+      }
+      
       this.viewer = null;
+    }
+    
+    // 清理可能的 window 全局引用
+    if (typeof window !== 'undefined' && (window as any).XMindEmbedViewer) {
+      try {
+        delete (window as any).XMindEmbedViewer;
+      } catch (error) {
+        // 在某些环境下可能无法删除，静默处理
+      }
     }
   }
 
@@ -268,7 +291,7 @@ export class XMindView extends ItemView {
    */
   private async getXMindEmbedViewer(): Promise<any> {
     if (XMindView.viewerLibLoaded) {
-      return (window as ObsidianWindow).XMindEmbedViewer;
+      return XMindEmbedViewerLib;
     }
     
     if (XMindView.viewerLibPromise) {
@@ -279,46 +302,13 @@ export class XMindView extends ItemView {
   }
 
   /**
-   * 动态加载 XMind Embed Viewer
+   * 加载 XMind Embed Viewer（使用本地依赖）
    */
   private async loadXMindEmbedViewer(): Promise<any> {
     try {
-      // 检查是否已经加载
-          const win = window as ObsidianWindow;
-    if (win.XMindEmbedViewer) {
+      // 使用本地导入的库
       XMindView.viewerLibLoaded = true;
-      return win.XMindEmbedViewer;
-      }
-      
-      // 尝试从 CDN 加载
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/xmind-embed-viewer/dist/umd/xmind-embed-viewer.js';
-      
-      return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error(i18n.t('errors.viewerLibraryTimeout')));
-        }, 30000); // 30秒超时
-        
-        script.onload = () => {
-          clearTimeout(timeout);
-          XMindView.viewerLibLoaded = true;
-          
-          // 验证库是否正确加载
-                  if (win.XMindEmbedViewer) {
-          resolve(win.XMindEmbedViewer);
-          } else {
-            reject(new Error(i18n.t('errors.viewerLibraryUnavailable')));
-          }
-        };
-        
-        script.onerror = (error) => {
-          clearTimeout(timeout);
-          console.error('XMind 查看器库加载失败:', error);
-          reject(new Error(i18n.t('errors.viewerLibraryLoadFailed')));
-        };
-        
-        document.head.appendChild(script);
-      });
+      return XMindEmbedViewerLib;
     } catch (error) {
       console.error('加载 XMind 查看器库时发生错误:', error);
       throw new Error(i18n.t('errors.cannotLoadViewerLibrary'));
@@ -346,7 +336,7 @@ export class XMindView extends ItemView {
     }
     
     if (progressBar) {
-      (progressBar as HTMLElement).style.width = `${progress}%`;
+      (progressBar as HTMLElement).style.setProperty('--progress-width', `${progress}%`);
     }
 
     // 根据进度更新提示信息
@@ -403,7 +393,6 @@ export class XMindView extends ItemView {
             }, 50);
           }
           
-          console.log('加载界面已隐藏，viewer 已显示');
           
           // 触发 viewer 重新调整大小
           this.resizeViewer();
@@ -709,39 +698,17 @@ export class XMindView extends ItemView {
     if (!this.xmindFile) return;
 
     try {
-      const { shell } = require('electron');
       const adapter = this.app.vault.adapter as unknown as ObsidianVaultAdapter;
       const filePath = adapter.path.join(
         adapter.basePath, 
         this.xmindFile.path
       );
       
-      // 使用 shell.openPath 打开文件
-      const result = await shell.openPath(filePath);
+      // 使用 Obsidian API 打开文件（跨平台兼容）
+      await this.app.openWithDefaultApp(filePath);
       
-      // 检查打开结果
-      if (result) {
-        // result 不为空字符串表示有错误
-        console.error('系统打开失败:', result);
-        
-        // 根据错误信息判断具体原因
-        let errorMessage: string;
-        if (result.includes('No application') || result.includes('没有应用') || 
-            result.includes('not found') || result.includes('找不到')) {
-          errorMessage = i18n.t('errors.systemOpenNoApp');
-        } else if (result.includes('Permission') || result.includes('权限') || 
-                   result.includes('denied') || result.includes('拒绝')) {
-          errorMessage = i18n.t('errors.systemOpenPermissionDenied');
-        } else {
-          errorMessage = `${i18n.t('errors.systemOpenFailed')}: ${result}`;
-        }
-        
-        // 显示错误通知
-        new Notice(errorMessage, 5000);
-      } else {
-        // 成功打开，显示成功通知
-        new Notice(i18n.t('messages.systemOpenSuccess'), 3000);
-      }
+      // 成功打开，显示成功通知
+      new Notice(i18n.t('messages.systemOpenSuccess'), 3000);
     } catch (error) {
       console.error('系统打开异常:', error);
       
@@ -776,9 +743,10 @@ export class XMindView extends ItemView {
 
       // 方案：隐藏过渡过程，避免闪烁
       // 1. 临时隐藏 viewer 内容
-      const originalOpacity = container.style.opacity;
-      container.style.transition = 'opacity 0.01s ease';
-      container.style.opacity = '0';
+      const originalOpacity = container.style.getPropertyValue('--original-opacity') || '1';
+      container.style.setProperty('--transition-duration', '0.01s');
+      container.style.setProperty('--opacity-value', '0');
+      container.classList.add('xmind-viewer-transitioning');
 
       // 2. 执行API调用
       setTimeout(() => {
@@ -792,7 +760,8 @@ export class XMindView extends ItemView {
 
               // 4. 显示内容
               setTimeout(() => {
-                container.style.opacity = originalOpacity || '1';
+                container.style.setProperty('--opacity-value', originalOpacity);
+                container.classList.remove('xmind-viewer-transitioning');
               }, 50);
             }
           }, 50);
@@ -804,7 +773,8 @@ export class XMindView extends ItemView {
       // 确保在出错时恢复显示
       const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
       if (container) {
-        container.style.opacity = '1';
+        container.style.setProperty('--opacity-value', '1');
+        container.classList.remove('xmind-viewer-transitioning');
       }
     }
   }
@@ -817,22 +787,18 @@ export class XMindView extends ItemView {
     try {
       const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
       if (!container) {
-        console.log('未找到内容容器，无法居中');
         return;
       }
 
       // 先应用 CSS 居中
       container.classList.add('centered');
-      console.log('已应用居中样式');
 
       // 智能API调用：只有在当前缩放不是100%时才使用API增强
       if (this.viewer && typeof this.viewer.getZoomScale === 'function') {
         const currentZoom = this.viewer.getZoomScale();
-        console.log('当前缩放比例:', currentZoom);
         
         // 如果当前缩放已经是100%，就不需要API调用
         if (Math.abs(currentZoom - 100) < 1) {
-          console.log('缩放已经是100%，跳过API调用');
           return;
         }
       }
@@ -849,11 +815,9 @@ export class XMindView extends ItemView {
             setTimeout(() => {
               if (typeof this.viewer.setZoomScale === 'function') {
                 this.viewer.setZoomScale(100);
-                console.log(`从 ${beforeZoom}% 恢复到 100% 缩放`);
               }
             }, 50); // 减少延迟时间
           } catch (error) {
-            console.log('API增强调用失败:', error);
           }
         }, 100); // 减少延迟时间
       }
@@ -870,11 +834,9 @@ export class XMindView extends ItemView {
     try {
       const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
       if (!container || !this.viewer) {
-        console.log('容器或viewer未准备好');
         return;
       }
 
-      console.log('开始事件驱动的居中操作');
 
       // 设置事件监听器，监听缩放变化
       let zoomChangeCount = 0;
@@ -882,12 +844,10 @@ export class XMindView extends ItemView {
 
       const zoomChangeHandler = (event: any) => {
         zoomChangeCount++;
-        console.log(`缩放变化 ${zoomChangeCount}/${targetZoomChanges}:`, event);
 
         if (zoomChangeCount === targetZoomChanges) {
           // 移除事件监听器
           this.viewer.removeEventListener('zoom-change', zoomChangeHandler);
-          console.log('居中操作完成（事件驱动）');
         }
       };
 
@@ -910,7 +870,6 @@ export class XMindView extends ItemView {
       setTimeout(() => {
         if (zoomChangeCount < targetZoomChanges) {
           this.viewer.removeEventListener('zoom-change', zoomChangeHandler);
-          console.log('事件监听器已超时清理');
         }
       }, 2000);
       
@@ -925,11 +884,9 @@ export class XMindView extends ItemView {
   private centerViewContentFastSwitch(): void {
     try {
       if (!this.viewer) {
-        console.log('viewer 未初始化');
         return;
       }
 
-      console.log('开始快速切换居中操作');
 
       // 使用最短延迟进行快速切换
       if (typeof this.viewer.setFitMap === 'function' && typeof this.viewer.setZoomScale === 'function') {
@@ -939,7 +896,6 @@ export class XMindView extends ItemView {
         // 使用requestAnimationFrame确保在下一帧立即设置100%
         requestAnimationFrame(() => {
           this.viewer.setZoomScale(100);
-          console.log('快速切换完成');
         });
       }
       
@@ -956,7 +912,6 @@ export class XMindView extends ItemView {
       const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
       if (container) {
         container.classList.remove('centered');
-        console.log('已移除居中样式');
       }
     } catch (error) {
       console.error('移除居中模式失败:', error);
