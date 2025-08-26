@@ -240,7 +240,7 @@ export class XMindView extends ItemView {
       }
       // 等待查看器库加载
       this.updateLoadingProgress(i18n.t('viewer.progress.loadingViewer'), 60);
-      const XMindEmbedViewer = await this.getXMindEmbedViewer();
+      const XMindEmbedViewerLib = await this.getXMindEmbedViewer();
       
       // 创建查看器容器（不清空 contentContainer，因为它包含 loading 界面）
       this.updateLoadingProgress(i18n.t('viewer.progress.initializing'), 80);
@@ -250,7 +250,7 @@ export class XMindView extends ItemView {
         cls: 'xmind-viewer-content-inner xmind-hidden'
       });
       
-      this.viewer = new XMindEmbedViewer({
+      this.viewer = new XMindEmbedViewerLib.XMindEmbedViewer({
         el: viewerContainer,
         region: this.settings.defaultRegion,
         width: '100%',

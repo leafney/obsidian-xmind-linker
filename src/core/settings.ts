@@ -276,8 +276,7 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
               new Notice(`${i18n.t('settings.thumbnailSettings.detailedCacheStats.error')}: ${error.message}`);
             }
           }));
-    }
-
+    
     // 其他设置分组
     new Setting(containerEl)
       .setName(i18n.t('settings.otherSettings.groupTitle'))
