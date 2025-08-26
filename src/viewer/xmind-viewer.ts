@@ -1,6 +1,7 @@
 import { ItemView, WorkspaceLeaf, TFile } from 'obsidian';
 import { XMindParser } from '../file-handler/xmind-parser';
 import { i18n } from '../core/i18n';
+import { SystemUtils } from '../utils/system-utils';
 import type { XMindViewerSettings, XMindEmbedViewer, XMindEmbedViewerConstructor, WorkspaceLeafExtended, ViewState, ViewResult, ObsidianVaultAdapter, ObsidianWindow } from '../types';
 import type { ViewStateResult } from 'obsidian';
 import { Notice } from 'obsidian';
@@ -575,14 +576,9 @@ export class XMindView extends ItemView {
       'crosshair',
       i18n.t('viewer.actualSizeCenter'),
       () => {
-        if (this.viewer && typeof this.viewer.setZoomScale === 'function') {
-          // 设置缩放为 100%
-          this.viewer.setZoomScale(100);
-          
-          // 使用隐藏过渡方案进行居中
-          this.centerViewContent();
-          
-
+        if (this.viewer) {
+          // 使用无闪烁的最优方案
+          this.centerViewContentNoFlicker();
         }
       }
     );
@@ -692,11 +688,14 @@ export class XMindView extends ItemView {
   }
 
   /**
-   * 在系统默认应用中打开
+   * 智能打开XMind文件（优先使用XMind应用，备选系统默认应用）
    */
   private async openInSystem(): Promise<void> {
     if (!this.xmindFile) return;
 
+    // 显示检测中的提示
+    let detectingNotice = new Notice(i18n.t('messages.xmindAppDetecting'), 0);
+    
     try {
       const adapter = this.app.vault.adapter as unknown as ObsidianVaultAdapter;
       const filePath = adapter.path.join(
@@ -704,12 +703,49 @@ export class XMindView extends ItemView {
         this.xmindFile.path
       );
       
-      // 使用 Obsidian API 打开文件（跨平台兼容）
+      // 检测XMind应用
+      const xmindApp = await SystemUtils.detectXMindApp();
+      detectingNotice.hide();
+      
+      if (xmindApp.found) {
+        // 找到XMind应用，使用XMind打开
+        const appDescription = SystemUtils.getXMindAppDescription(xmindApp);
+        new Notice(`${i18n.t('messages.xmindAppFound')}: ${appDescription}`, 2000);
+        
+        // 显示正在用XMind打开的提示
+        const openingNotice = new Notice(i18n.t('messages.openingWithXMind'), 0);
+        
+        try {
+          const success = await SystemUtils.openWithXMind(filePath);
+          openingNotice.hide();
+          
+          if (success) {
+            new Notice(i18n.t('messages.xmindOpenSuccess'), 3000);
+            return;
+          } else {
+            throw new Error('XMind打开失败');
+          }
+        } catch (xmindError) {
+          openingNotice.hide();
+          console.warn('XMind打开失败，尝试系统默认应用:', xmindError);
+          new Notice(i18n.t('messages.xmindOpenFailed'), 3000);
+        }
+      } else {
+        // 未找到XMind应用
+        new Notice(i18n.t('messages.xmindAppNotFound'), 3000);
+      }
+      
+      // 使用系统默认应用作为备选方案
+      new Notice(i18n.t('messages.openingWithSystemApp'), 2000);
       await this.app.openWithDefaultApp(filePath);
       
       // 成功打开，显示成功通知
       new Notice(i18n.t('messages.systemOpenSuccess'), 3000);
+      
     } catch (error) {
+      // 隐藏所有之前的通知
+      detectingNotice?.hide();
+      
       console.error('系统打开异常:', error);
       
       // 根据异常类型判断错误原因
@@ -728,179 +764,37 @@ export class XMindView extends ItemView {
   }
 
   /**
-   * 居中显示查看器内容（隐藏过渡方案）
+   * 100%大小并居中显示
    */
-  private centerViewContent(): void {
+  private centerViewContentNoFlicker(): void {
     try {
-      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
-      if (!container) {
-        return;
-      }
-
       if (!this.viewer) {
         return;
       }
 
-      // 方案：隐藏过渡过程，避免闪烁
-      // 1. 临时隐藏 viewer 内容
-      const originalOpacity = container.style.getPropertyValue('--original-opacity') || '1';
-      container.style.setProperty('--transition-duration', '0.01s');
-      container.style.setProperty('--opacity-value', '0');
-      container.classList.add('xmind-viewer-transitioning');
-
-      // 2. 执行API调用
-      setTimeout(() => {
-        if (typeof this.viewer.setFitMap === 'function') {
-          this.viewer.setFitMap();
-
-          // 3. 设置回100%缩放
-          setTimeout(() => {
-            if (typeof this.viewer.setZoomScale === 'function') {
-              this.viewer.setZoomScale(100);
-
-              // 4. 显示内容
-              setTimeout(() => {
-                container.style.setProperty('--opacity-value', originalOpacity);
-                container.classList.remove('xmind-viewer-transitioning');
-              }, 50);
-            }
-          }, 50);
-        }
-      }, 100);
-      
-    } catch (error) {
-      console.error('居中显示失败:', error);
-      // 确保在出错时恢复显示
-      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
-      if (container) {
-        container.style.setProperty('--opacity-value', '1');
-        container.classList.remove('xmind-viewer-transitioning');
-      }
-    }
-  }
-
-  /**
-   * 智能居中显示（备选方案，包含API增强）
-   * 这个方法会检查当前缩放状态，避免不必要的缩放变化
-   */
-  private centerViewContentWithAPI(): void {
-    try {
-      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
-      if (!container) {
-        return;
-      }
-
-      // 先应用 CSS 居中
-      container.classList.add('centered');
-
-      // 智能API调用：只有在当前缩放不是100%时才使用API增强
-      if (this.viewer && typeof this.viewer.getZoomScale === 'function') {
+      // 检查是否已经是100%缩放，避免不必要的操作
+      if (typeof this.viewer.getZoomScale === 'function') {
         const currentZoom = this.viewer.getZoomScale();
-        
-        // 如果当前缩放已经是100%，就不需要API调用
         if (Math.abs(currentZoom - 100) < 1) {
+          // 已经是100%，只需要居中
+          if (typeof this.viewer.setFitMap === 'function') {
+            this.viewer.setFitMap();
+            // 立即恢复到100%
+            setTimeout(() => this.viewer.setZoomScale(100), 1);
+          }
           return;
         }
       }
 
-      // 如果需要API增强，使用更温和的方法
-      if (this.viewer && typeof this.viewer.setFitMap === 'function') {
-        setTimeout(() => {
-          try {
-            // 记录调用前的缩放
-            const beforeZoom = this.viewer.getZoomScale?.() || 100;
-            this.viewer.setFitMap();
-            
-            // 延迟恢复到100%
-            setTimeout(() => {
-              if (typeof this.viewer.setZoomScale === 'function') {
-                this.viewer.setZoomScale(100);
-              }
-            }, 50); // 减少延迟时间
-          } catch (error) {
-          }
-        }, 100); // 减少延迟时间
-      }
-      
-    } catch (error) {
-      console.error('智能居中显示失败:', error);
-    }
-  }
-
-  /**
-   * 基于事件监听的居中方法（最优化方案）
-   */
-  private centerViewContentEventBased(): void {
-    try {
-      const container = this.contentContainer.querySelector('.xmind-viewer-content-inner') as HTMLElement;
-      if (!container || !this.viewer) {
-        return;
-      }
-
-
-      // 设置事件监听器，监听缩放变化
-      let zoomChangeCount = 0;
-      const targetZoomChanges = 2; // 预期的缩放变化次数
-
-      const zoomChangeHandler = (event: any) => {
-        zoomChangeCount++;
-
-        if (zoomChangeCount === targetZoomChanges) {
-          // 移除事件监听器
-          this.viewer.removeEventListener('zoom-change', zoomChangeHandler);
-        }
-      };
-
-      // 添加临时事件监听器
-      this.viewer.addEventListener('zoom-change', zoomChangeHandler);
-
-      // 执行居中操作
-      if (typeof this.viewer.setFitMap === 'function') {
-        this.viewer.setFitMap();
-        
-        // 短暂延迟后设置100%
-        setTimeout(() => {
-          if (typeof this.viewer.setZoomScale === 'function') {
-            this.viewer.setZoomScale(100);
-          }
-        }, 30);
-      }
-
-      // 设置超时清理，防止事件监听器泄漏
-      setTimeout(() => {
-        if (zoomChangeCount < targetZoomChanges) {
-          this.viewer.removeEventListener('zoom-change', zoomChangeHandler);
-        }
-      }, 2000);
-      
-    } catch (error) {
-      console.error('事件驱动居中失败:', error);
-    }
-  }
-
-  /**
-   * 快速切换方案（最小化闪烁）
-   */
-  private centerViewContentFastSwitch(): void {
-    try {
-      if (!this.viewer) {
-        return;
-      }
-
-
-      // 使用最短延迟进行快速切换
+      // 使用单次API调用实现居中和缩放
       if (typeof this.viewer.setFitMap === 'function' && typeof this.viewer.setZoomScale === 'function') {
-        // 立即调用setFitMap
+        // 同步调用，最小化视觉变化
         this.viewer.setFitMap();
-        
-        // 使用requestAnimationFrame确保在下一帧立即设置100%
-        requestAnimationFrame(() => {
-          this.viewer.setZoomScale(100);
-        });
+        this.viewer.setZoomScale(100);
       }
       
     } catch (error) {
-      console.error('快速切换居中失败:', error);
+      console.error('无闪烁居中失败:', error);
     }
   }
 

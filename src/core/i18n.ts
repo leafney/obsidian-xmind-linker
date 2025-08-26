@@ -118,6 +118,13 @@ export interface I18nTexts {
     thumbnailExtracted: string;
     systemOpenFailed: string;
     systemOpenSuccess: string;
+    xmindAppDetecting: string;
+    xmindAppNotFound: string;
+    xmindAppFound: string;
+    openingWithXMind: string;
+    openingWithSystemApp: string;
+    xmindOpenSuccess: string;
+    xmindOpenFailed: string;
     unsupportedFile: string;
     openInXMind: string;
     extractThumbnail: string;
@@ -283,7 +290,14 @@ const EN_TEXTS: I18nTexts = {
     cacheCleanupComplete: 'Cache cleanup completed',
     thumbnailExtracted: 'Thumbnail extracted successfully',
     systemOpenFailed: 'Failed to open with system application',
-    systemOpenSuccess: 'Opened with system application',
+    systemOpenSuccess: 'Opening with system application...',
+    xmindAppDetecting: 'Detecting XMind application...',
+    xmindAppNotFound: 'XMind application not found, using system default app',
+    xmindAppFound: 'XMind application found',
+    openingWithXMind: 'Opening with XMind...',
+    openingWithSystemApp: 'Opening with system default app...',
+    xmindOpenSuccess: 'Opened successfully with XMind',
+    xmindOpenFailed: 'Failed to open with XMind, trying system default app',
     unsupportedFile: 'Unsupported file format',
     openInXMind: 'Open in XMind',
     extractThumbnail: 'Extract thumbnail',
@@ -445,7 +459,14 @@ const ZH_CN_TEXTS: I18nTexts = {
     cacheCleanupComplete: '缓存清理完成',
     thumbnailExtracted: '缩略图提取成功',
     systemOpenFailed: '使用系统应用打开失败',
-    systemOpenSuccess: '使用系统应用打开成功',
+    systemOpenSuccess: '使用系统应用打开中...',
+    xmindAppDetecting: '正在检测 XMind 应用...',
+    xmindAppNotFound: '未找到 XMind 应用，使用系统默认应用',
+    xmindAppFound: '已找到 XMind 应用',
+    openingWithXMind: '正在使用 XMind 打开...',
+    openingWithSystemApp: '正在使用系统默认应用打开...',
+    xmindOpenSuccess: 'XMind 打开成功',
+    xmindOpenFailed: 'XMind 打开失败，尝试使用系统默认应用',
     unsupportedFile: '不支持的文件格式',
     openInXMind: '在 XMind 中打开',
     extractThumbnail: '提取缩略图',
