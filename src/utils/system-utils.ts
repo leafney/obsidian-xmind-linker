@@ -3,19 +3,53 @@
  */
 
 import { Platform } from 'obsidian';
-import { existsSync } from 'fs';
-import * as path from 'path';
 
-// 使用 Electron 的 API，而不是 Node.js child_process
+// 桌面端专用功能的声明
 declare global {
   interface Window {
-    require: (module: string) => any;
-    process: {
+    require?: (module: string) => any;
+    process?: {
       platform: string;
       env: { [key: string]: string | undefined };
     };
   }
 }
+
+// 检查是否有文件系统访问权限（桌面端专用）
+const hasFileSystemAccess = (): boolean => {
+  return Platform.isDesktop && typeof window !== 'undefined' && window.require;
+};
+
+// 安全的文件系统操作包装器
+const safeFileExists = async (filePath: string): Promise<boolean> => {
+  if (!hasFileSystemAccess()) {
+    return false;
+  }
+  
+  try {
+    const fs = window.require!('fs');
+    return fs.existsSync(filePath);
+  } catch (error) {
+    console.warn('文件系统访问失败:', error);
+    return false;
+  }
+};
+
+// 安全的路径操作包装器
+const safePath = {
+  join: (...paths: string[]): string => {
+    if (hasFileSystemAccess()) {
+      try {
+        const path = window.require!('path');
+        return path.join(...paths);
+      } catch (error) {
+        console.warn('路径操作失败:', error);
+      }
+    }
+    // 备用的简单路径连接（移动端）
+    return paths.join('/').replace(/\/+/g, '/');
+  }
+};
 
 const getElectronShell = () => {
   try {
@@ -30,18 +64,19 @@ const getElectronShell = () => {
 };
 
 const execAsync = async (command: string): Promise<{ stdout: string; stderr: string }> => {
+  if (!hasFileSystemAccess()) {
+    throw new Error('系统命令执行不可用（移动端不支持）');
+  }
+  
   try {
-    if (typeof window !== 'undefined' && window.require) {
-      const { spawn } = window.require('child_process');
-      const { promisify } = window.require('util');
-      const { exec } = window.require('child_process');
-      const execPromise = promisify(exec);
-      return await execPromise(command);
-    }
+    const { promisify } = window.require!('util');
+    const { exec } = window.require!('child_process');
+    const execPromise = promisify(exec);
+    return await execPromise(command);
   } catch (error) {
     console.warn('无法执行系统命令:', error);
+    throw new Error('系统命令执行失败');
   }
-  throw new Error('系统命令执行不可用');
 };
 
 export interface SystemInfo {
@@ -78,6 +113,11 @@ export class SystemUtils {
    * 检测XMind应用是否已安装
    */
   static async detectXMindApp(): Promise<XMindAppInfo> {
+    // 移动端不支持 XMind 应用检测
+    if (!Platform.isDesktop) {
+      return { found: false };
+    }
+
     const { platform } = this.getSystemInfo();
     
     switch (platform) {
@@ -115,9 +155,9 @@ export class SystemUtils {
 
     for (const appPath of possiblePaths) {
       const resolvedPath = appPath.startsWith('~') ? 
-        path.join(process.env.HOME || '', appPath.slice(2)) : appPath;
+        safePath.join(window.process?.env.HOME || '', appPath.slice(2)) : appPath;
       
-      if (existsSync(resolvedPath)) {
+      if (await safeFileExists(resolvedPath)) {
         try {
           // 简化版本检测，避免复杂的命令行调用
           let version = 'Detected';
@@ -167,7 +207,7 @@ export class SystemUtils {
     ];
 
     for (const exePath of possiblePaths) {
-      if (existsSync(exePath)) {
+      if (await safeFileExists(exePath)) {
         try {
           // 简化版本检测，从路径推断
           let version = 'Detected';
@@ -210,11 +250,11 @@ export class SystemUtils {
       '/opt/xmind/xmind',
       '/opt/XMind/xmind',
       '/snap/bin/xmind',
-      `${process.env.HOME}/.local/bin/xmind`
+      `${window.process?.env.HOME}/.local/bin/xmind`
     ];
 
     for (const exePath of possiblePaths) {
-      if (existsSync(exePath)) {
+      if (await safeFileExists(exePath)) {
         // 从路径推断版本
         let version = 'System';
         if (exePath.includes('2024')) version = '2024';
@@ -240,6 +280,11 @@ export class SystemUtils {
    * 使用XMind应用打开文件
    */
   static async openWithXMind(filePath: string): Promise<boolean> {
+    // 移动端不支持外部应用启动
+    if (!Platform.isDesktop) {
+      return false;
+    }
+
     const xmindApp = await this.detectXMindApp();
     
     if (!xmindApp.found || !xmindApp.executablePath) {

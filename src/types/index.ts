@@ -23,7 +23,6 @@ export interface XMindViewerSettings {
   defaultRegion: 'global' | 'cn';
   enableSystemIntegration: boolean;
   thumbnailCacheDir: string;
-  language: 'en' | 'zh-cn';
   thumbnailMaxWidth: number;
   thumbnailMaxHeight: number;
   thumbnailQuality: 'low' | 'medium' | 'high';

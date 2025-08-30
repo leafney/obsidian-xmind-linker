@@ -1,4 +1,4 @@
-import { Plugin, TFile, WorkspaceLeaf, MarkdownPostProcessorContext, Notice, addIcon, setIcon } from 'obsidian';
+import { Plugin, TFile, WorkspaceLeaf, MarkdownPostProcessorContext, Notice, addIcon, setIcon, getLanguage } from 'obsidian';
 import { XMindView, XMIND_VIEW_TYPE } from './src/viewer/xmind-viewer';
 import { XMindLinkerSettingTab, DEFAULT_SETTINGS } from './src/core/settings';
 import { ThumbnailExtractor } from './src/file-handler/thumbnail-extractor';
@@ -13,30 +13,11 @@ export default class XMindLinkerPlugin extends Plugin {
     // 加载设置
     await this.loadSettings();
     
-    // 初始化国际化 - 优先使用 Obsidian 的语言设置，回退到用户设置
-    try {
-      const obsidianLang = this.app.getLanguage?.();
-      if (obsidianLang) {
-        // 将 Obsidian 语言代码映射到支持的语言
-        const langMap: Record<string, 'en' | 'zh-cn'> = {
-          'zh': 'zh-cn',
-          'zh-cn': 'zh-cn', 
-          'zh-hans': 'zh-cn',
-          'zh-sg': 'zh-cn',
-          'en': 'en',
-          'en-us': 'en',
-          'en-gb': 'en'
-        };
-        const mappedLang = langMap[obsidianLang.toLowerCase()] || 'en';
-        i18n.setLanguage(mappedLang);
-      } else {
-        // 回退到用户设置
-        i18n.setLanguage(this.settings.language);
-      }
-    } catch (error) {
-      // 如果 getLanguage 不可用，回退到用户设置
-      i18n.setLanguage(this.settings.language);
-    }
+    // 初始化国际化 - 使用 Obsidian 的语言设置，只支持中英文
+    const obsidianLang = getLanguage().toLowerCase();
+    // 简单判断：如果是中文相关语言则使用中文，否则使用英文
+    const language = obsidianLang.startsWith('zh') ? 'zh-cn' : 'en';
+    i18n.setLanguage(language);
     
     // 注册自定义图标
     this.registerXMindIcon();
@@ -131,7 +112,7 @@ export default class XMindLinkerPlugin extends Plugin {
       name: i18n.t('commands.cleanupCache'),
       callback: async () => {
         await this.thumbnailExtractor.clearAllCache();
-        new Notice('所有缓存已清理完成');
+        new Notice(i18n.t('messages.cacheCleanupComplete'));
       }
     });
   }
@@ -158,7 +139,7 @@ export default class XMindLinkerPlugin extends Plugin {
     // 监听活动文件变化，用于调试
     this.registerEvent(
       this.app.workspace.on('active-leaf-change', (leaf) => {
-        if (leaf && leaf.view && leaf.view.getViewType() === XMIND_VIEW_TYPE) {
+        if (leaf && leaf.view instanceof XMindView) {
           const activeFile = this.app.workspace.getActiveFile();
           // 处理活动文件变化
         }
@@ -226,7 +207,7 @@ export default class XMindLinkerPlugin extends Plugin {
           this.createFallbackElement(container, file);
         } else {
           // 显示错误状态
-          this.createErrorElement(container, file, result.error || '未知错误');
+          this.createErrorElement(container, file, result.error || 'Unknown error');
         }
       } else {
         // 未启用缩略图提取，显示fallback
@@ -263,7 +244,7 @@ export default class XMindLinkerPlugin extends Plugin {
 
     const text = loadingDiv.createDiv({
       cls: 'xmind-loading-text',
-      text: `正在提取 ${file.basename} 的缩略图...`
+      text: `${i18n.t('commands.extractThumbnail')} ${file.basename}...`
     });
   }
 
@@ -294,7 +275,7 @@ export default class XMindLinkerPlugin extends Plugin {
     // 添加信息覆盖层
     const overlay = container.createDiv({
       cls: 'xmind-thumbnail-overlay',
-      text: `${file.basename} • 点击查看`
+      text: `${file.basename} • ${i18n.t('messages.viewInPlugin')}`
     });
 
     // 添加点击事件
@@ -329,7 +310,7 @@ export default class XMindLinkerPlugin extends Plugin {
 
     const text = fallbackDiv.createDiv({
       cls: 'xmind-fallback-text',
-      text: '点击查看 XMind 文件'
+      text: i18n.t('messages.viewInPlugin')
     });
 
     // 添加点击事件
@@ -353,7 +334,7 @@ export default class XMindLinkerPlugin extends Plugin {
 
     const text = errorDiv.createDiv({
       cls: 'xmind-error-text',
-      text: `缩略图提取失败: ${error}`
+      text: `${i18n.t('errors.thumbnailExtractionFailed')}: ${error}`
     });
 
     // 添加点击事件仍然可以打开文件
@@ -395,7 +376,7 @@ export default class XMindLinkerPlugin extends Plugin {
   private checkAndHandleDuplicateViews(newLeaf: WorkspaceLeaf): void {
     // 等待视图完全初始化
     const checkRepeatedly = (attempts = 0) => {
-      if (!newLeaf.view || newLeaf.view.getViewType() !== XMIND_VIEW_TYPE) {
+      if (!newLeaf.view || !(newLeaf.view instanceof XMindView)) {
         if (attempts < 10) {
           setTimeout(() => checkRepeatedly(attempts + 1), 50);
           return;
@@ -422,7 +403,7 @@ export default class XMindLinkerPlugin extends Plugin {
       // 查找打开相同文件的其他视图（排除当前新创建的）
       const sameFileLeaves = allXMindLeaves.filter(leaf => {
         if (leaf === newLeaf) return false;
-        if (!leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) return false;
+        if (!leaf.view || !(leaf.view instanceof XMindView)) return false;
         
         const view = this.getXMindView(leaf);
         const file = view?.getFile();
@@ -460,7 +441,7 @@ export default class XMindLinkerPlugin extends Plugin {
     const fileGroups = new Map<string, WorkspaceLeaf[]>();
     
     xmindLeaves.forEach(leaf => {
-      if (!leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) return;
+      if (!leaf.view || !(leaf.view instanceof XMindView)) return;
       
       const view = this.getXMindView(leaf);
       const file = view?.getFile();
@@ -515,17 +496,12 @@ export default class XMindLinkerPlugin extends Plugin {
    * 安全获取 XMind 视图，处理 DeferredView 情况
    */
   private getXMindView(leaf: WorkspaceLeaf): XMindView | null {
-    if (!leaf.view || leaf.view.getViewType() !== XMIND_VIEW_TYPE) {
+    if (!leaf.view || !(leaf.view instanceof XMindView)) {
       return null;
     }
     
-    // 检查是否是 DeferredView，如果是则返回 null
-    // DeferredView 在视图实际显示之前不会是真正的 XMindView
-    if (leaf.view.constructor.name === 'DeferredView') {
-      return null;
-    }
-    
-    return leaf.view as XMindView;
+    // 直接返回视图，因为已经通过 instanceof 检查
+    return leaf.view;
   }
 
   /**
@@ -535,7 +511,7 @@ export default class XMindLinkerPlugin extends Plugin {
     // 遍历所有工作区的叶子节点，查找是否有打开相同文件的 XMind 视图
     const leaves = this.app.workspace.getLeavesOfType(XMIND_VIEW_TYPE);
     for (const leaf of leaves) {
-      if (leaf.view?.getViewType() === XMIND_VIEW_TYPE) {
+      if (leaf.view instanceof XMindView) {
         const view = this.getXMindView(leaf);
         if (view?.getFile()?.path === file.path) {
           return leaf;
@@ -548,6 +524,13 @@ export default class XMindLinkerPlugin extends Plugin {
 
 
 
+
+  /**
+   * 清理已关闭的标签页
+   */
+  private cleanupClosedTabs(): void {
+    this.handleDuplicateXMindViews();
+  }
 
   /**
    * 提取缩略图

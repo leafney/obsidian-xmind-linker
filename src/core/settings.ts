@@ -9,7 +9,6 @@ export const DEFAULT_SETTINGS: XMindViewerSettings = {
   defaultRegion: 'global',
   enableSystemIntegration: true,
   thumbnailCacheDir: '.xmind-thumbnails',
-  language: 'en',
   thumbnailMaxWidth: 600,
   thumbnailMaxHeight: 400,
   thumbnailQuality: 'medium',
@@ -31,25 +30,6 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
     containerEl.addClass('xmind-linker-settings');
-
-    // 语言设置 - 放在最前面
-    new Setting(containerEl)
-      .setName(i18n.t('settings.language.name'))
-      .setDesc(i18n.t('settings.language.desc'))
-      .addDropdown(dropdown => {
-        dropdown
-          .addOption('en', i18n.t('settings.languageOptions.en'))
-          .addOption('zh-cn', i18n.t('settings.languageOptions.zh-cn'))
-          .setValue(this.plugin.settings.language)
-          .onChange(async (value: SupportedLanguage) => {
-            this.plugin.settings.language = value;
-            await this.plugin.saveSettings();
-            
-            // 更新 i18n 语言并重新渲染设置面板
-            i18n.setLanguage(value);
-            this.display();
-          });
-      });
 
     // 缩略图设置分组
     new Setting(containerEl)
@@ -256,14 +236,17 @@ export class XMindLinkerSettingTab extends PluginSettingTab {
                 const result = await this.plugin.thumbnailExtractor.cleanupOrphanedCache();
                 
                 if (result.cleaned > 0) {
-                  new Notice(`已清理 ${result.cleaned} 个孤立缓存文件，释放 ${result.size} MB 空间`);
+                  new Notice(i18n.t('messages.orphanedCacheCleared')
+                    .replace('{count}', result.cleaned.toString())
+                    .replace('{size}', result.size.toString()));
                 } else {
-                  new Notice('没有发现孤立缓存文件');
+                  new Notice(i18n.t('messages.noOrphanedCacheFound'));
                 }
                 
                 if (result.errors.length > 0) {
                   console.error('清理孤立缓存时出现错误:', result.errors);
-                  new Notice(`清理完成，但有 ${result.errors.length} 个文件清理失败`);
+                  new Notice(i18n.t('messages.orphanedCacheCleanupPartial')
+                    .replace('{count}', result.errors.length.toString()));
                 }
                 
                 // 刷新显示

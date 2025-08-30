@@ -1,11 +1,10 @@
-import { Platform } from 'obsidian';
+import { Platform, getLanguage } from 'obsidian';
 
 export type SupportedLanguage = 'en' | 'zh-cn';
 
 export interface I18nTexts {
   // 设置面板
   settings: {
-    title: string;
     enableThumbnailExtraction: {
       name: string;
       desc: string;
@@ -23,17 +22,9 @@ export interface I18nTexts {
       name: string;
       desc: string;
     };
-    language: {
-      name: string;
-      desc: string;
-    };
     regionOptions: {
       global: string;
       cn: string;
-    };
-    languageOptions: {
-      en: string;
-      'zh-cn': string;
     };
     // 新增缩略图设置
     thumbnailSettings: {
@@ -129,6 +120,9 @@ export interface I18nTexts {
     openInXMind: string;
     extractThumbnail: string;
     viewInPlugin: string;
+    orphanedCacheCleared: string;
+    noOrphanedCacheFound: string;
+    orphanedCacheCleanupPartial: string;
   };
 
   // 查看器界面
@@ -183,7 +177,6 @@ export interface I18nTexts {
 // 英文语言包
 const EN_TEXTS: I18nTexts = {
   settings: {
-    title: 'XMind Linker Configuration',
     enableThumbnailExtraction: {
       name: 'Enable thumbnail extraction',
       desc: 'Automatically extract thumbnails from XMind files for preview'
@@ -200,17 +193,9 @@ const EN_TEXTS: I18nTexts = {
       name: 'Thumbnail cache directory',
       desc: 'Directory name for storing extracted thumbnails'
     },
-    language: {
-      name: 'Language',
-      desc: 'Choose the interface language'
-    },
     regionOptions: {
       global: 'Global',
       cn: 'China mainland'
-    },
-    languageOptions: {
-      en: 'English',
-      'zh-cn': '简体中文'
     },
     // 新增缩略图设置
     thumbnailSettings: {
@@ -301,10 +286,13 @@ const EN_TEXTS: I18nTexts = {
     unsupportedFile: 'Unsupported file format',
     openInXMind: 'Open in XMind',
     extractThumbnail: 'Extract thumbnail',
-    viewInPlugin: 'View in plugin'
+    viewInPlugin: 'View in plugin',
+    orphanedCacheCleared: 'Cleaned {count} orphaned cache files, freed {size} MB',
+    noOrphanedCacheFound: 'No orphaned cache files found',
+    orphanedCacheCleanupPartial: 'Cleanup completed, but {count} files failed to clean'
   },
   viewer: {
-    title: 'XMind Viewer',
+    title: 'XMind viewer',
     noFileSelected: 'Please select an XMind file to preview',
     loadingFile: 'Loading XMind file...',
     loadingLibrary: 'Loading XMind viewer library...',
@@ -352,7 +340,6 @@ const EN_TEXTS: I18nTexts = {
 // 中文语言包
 const ZH_CN_TEXTS: I18nTexts = {
   settings: {
-    title: 'XMind Linker 配置',
     enableThumbnailExtraction: {
       name: '启用缩略图提取',
       desc: '自动提取 XMind 文件中的缩略图用于预览'
@@ -369,17 +356,9 @@ const ZH_CN_TEXTS: I18nTexts = {
       name: '缩略图缓存目录',
       desc: '存储提取的缩略图的目录名称'
     },
-    language: {
-      name: '语言',
-      desc: '选择界面语言'
-    },
     regionOptions: {
       global: '全球',
       cn: '中国大陆'
-    },
-    languageOptions: {
-      en: 'English',
-      'zh-cn': '简体中文'
     },
     // 新增缩略图设置
     thumbnailSettings: {
@@ -470,7 +449,10 @@ const ZH_CN_TEXTS: I18nTexts = {
     unsupportedFile: '不支持的文件格式',
     openInXMind: '在 XMind 中打开',
     extractThumbnail: '提取缩略图',
-    viewInPlugin: '在插件中查看'
+    viewInPlugin: '在插件中查看',
+    orphanedCacheCleared: '已清理 {count} 个孤立缓存文件，释放 {size} MB 空间',
+    noOrphanedCacheFound: '没有发现孤立缓存文件',
+    orphanedCacheCleanupPartial: '清理完成，但有 {count} 个文件清理失败'
   },
   viewer: {
     title: 'XMind 查看器',
@@ -575,64 +557,16 @@ export class I18nManager {
   }
 
   /**
-   * 自动检测语言
+   * 自动检测语言 - 只支持中英文
    */
   private detectLanguage(): void {
-    // 语言映射
-    const langMap: Record<string, SupportedLanguage> = {
-      'zh': 'zh-cn',
-      'zh-cn': 'zh-cn',
-      'zh-hans': 'zh-cn',
-      'zh-sg': 'zh-cn',
-      'en': 'en',
-      'en-us': 'en',
-      'en-gb': 'en'
-    };
-    
-    // 优先使用 Obsidian 语言设置
-    let detectedLang: SupportedLanguage = 'en';
-    
-    try {
-      // 尝试使用 Obsidian API 获取语言设置
-      if ((window as any).app && typeof (window as any).app.getLanguage === 'function') {
-        const obsidianLang = (window as any).app.getLanguage().toLowerCase();
-        if (obsidianLang && langMap[obsidianLang]) {
-          detectedLang = langMap[obsidianLang];
-          this.setLanguage(detectedLang);
-          return;
-        }
-      }
-    } catch (error) {
-      // getLanguage API 不可用或出错，继续其他检测方式
-    }
-    
-    // 回退到浏览器语言检测
-    const browserLang = navigator.language.toLowerCase();
-    
-    if (browserLang && langMap[browserLang]) {
-      detectedLang = langMap[browserLang];
-    } else {
-      // 检查是否包含中文字符
-      for (const [key, value] of Object.entries(langMap)) {
-        if (browserLang.includes(key)) {
-          detectedLang = value;
-          break;
-        }
-      }
-    }
-    
+    // 使用 Obsidian API 获取语言设置
+    const obsidianLang = getLanguage().toLowerCase();
+    // 简单判断：如果是中文相关语言则使用中文，否则使用英文
+    const detectedLang: SupportedLanguage = obsidianLang.startsWith('zh') ? 'zh-cn' : 'en';
     this.setLanguage(detectedLang);
   }
 
-  /**
-   * 获取所有支持的语言
-   */
-  getSupportedLanguages(): Array<{code: SupportedLanguage, name: string}> {
-    return [
-      { code: 'en', name: this.texts.settings.languageOptions.en },
-      { code: 'zh-cn', name: this.texts.settings.languageOptions['zh-cn'] }
-    ];
-  }
 }
 
 // 导出全局实例

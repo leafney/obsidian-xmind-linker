@@ -19,6 +19,7 @@ export class XMindView extends ItemView {
   private loadingProgress = 0;
   private static viewerLibLoaded = false;
   private static viewerLibPromise: Promise<XMindEmbedViewer> | null = null;
+  private eventHandlers: { [key: string]: (...args: any[]) => void } = {};
 
   constructor(leaf: WorkspaceLeaf, settings: XMindViewerSettings) {
     super(leaf);
@@ -147,15 +148,24 @@ export class XMindView extends ItemView {
     if (this.viewer) {
       // 移除所有事件监听器
       try {
-        this.viewer.removeEventListener('map-ready', () => {});
-        this.viewer.removeEventListener('zoom-change', () => {});
-        this.viewer.removeEventListener('sheet-switch', () => {});
+        if (this.eventHandlers['map-ready']) {
+          this.viewer.removeEventListener('map-ready', this.eventHandlers['map-ready']);
+        }
+        if (this.eventHandlers['zoom-change']) {
+          this.viewer.removeEventListener('zoom-change', this.eventHandlers['zoom-change']);
+        }
+        if (this.eventHandlers['sheet-switch']) {
+          this.viewer.removeEventListener('sheet-switch', this.eventHandlers['sheet-switch']);
+        }
       } catch (error) {
         // 忽略清理错误
       }
       
       this.viewer = null;
     }
+    
+    // 清理事件处理器
+    this.eventHandlers = {};
     
     // 清理可能的 window 全局引用
     if (typeof window !== 'undefined' && (window as any).XMindEmbedViewer) {
@@ -230,7 +240,7 @@ export class XMindView extends ItemView {
       this.updateTitle();
 
       // 读取文件
-      this.updateLoadingProgress('读取文件中...', 20);
+      this.updateLoadingProgress(i18n.t('viewer.loadingFile'), 20);
       const buffer = await this.app.vault.adapter.readBinary(file.path);
 
       
@@ -499,7 +509,8 @@ export class XMindView extends ItemView {
   private setupViewerEvents(): void {
     if (!this.viewer) return;
 
-    this.viewer.addEventListener('map-ready', () => {
+    // 使用存储的事件处理器，以便正确移除
+    this.eventHandlers['map-ready'] = () => {
       // 地图准备就绪，隐藏加载状态
       this.hideLoadingState();
       
@@ -507,16 +518,21 @@ export class XMindView extends ItemView {
       setTimeout(() => {
         this.resizeViewer();
       }, 200);
-    });
+    };
 
-    this.viewer.addEventListener('zoom-change', (payload: any) => {
+    this.eventHandlers['zoom-change'] = (payload: any) => {
       // 缩放变化处理
-    });
+    };
 
-    this.viewer.addEventListener('sheet-switch', (payload: any) => {
+    this.eventHandlers['sheet-switch'] = (payload: any) => {
       // 工作表切换完成，确保加载状态已隐藏
       this.hideLoadingState();
-    });
+    };
+
+    // 添加事件监听器
+    this.viewer.addEventListener('map-ready', this.eventHandlers['map-ready']);
+    this.viewer.addEventListener('zoom-change', this.eventHandlers['zoom-change']);
+    this.viewer.addEventListener('sheet-switch', this.eventHandlers['sheet-switch']);
   }
 
   /**
