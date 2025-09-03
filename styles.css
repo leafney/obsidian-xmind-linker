@@ -6,6 +6,27 @@
   max-height: var(--thumbnail-max-height, 150px);
 }
 
+/* 预设尺寸类，替代动态样式设置 */
+.xmind-thumbnail.size-custom-small {
+  max-width: 200px;
+  max-height: 150px;
+}
+
+.xmind-thumbnail.size-custom-medium {
+  max-width: 300px;
+  max-height: 225px;
+}
+
+.xmind-thumbnail.size-custom-large {
+  max-width: 400px;
+  max-height: 300px;
+}
+
+.xmind-thumbnail.size-custom-extra-large {
+  max-width: 600px;
+  max-height: 450px;
+}
+
 .xmind-progress-bar {
   width: var(--progress-width, 0%);
 }
@@ -72,6 +93,28 @@
 .xmind-progress-100 {
   width: 100% !important;
 }
+
+/* 动态进度条宽度类 */
+.xmind-progress-0 { width: 0% !important; }
+.xmind-progress-5 { width: 5% !important; }
+.xmind-progress-10 { width: 10% !important; }
+.xmind-progress-15 { width: 15% !important; }
+.xmind-progress-20 { width: 20% !important; }
+.xmind-progress-25 { width: 25% !important; }
+.xmind-progress-30 { width: 30% !important; }
+.xmind-progress-35 { width: 35% !important; }
+.xmind-progress-40 { width: 40% !important; }
+.xmind-progress-45 { width: 45% !important; }
+.xmind-progress-50 { width: 50% !important; }
+.xmind-progress-55 { width: 55% !important; }
+.xmind-progress-60 { width: 60% !important; }
+.xmind-progress-65 { width: 65% !important; }
+.xmind-progress-70 { width: 70% !important; }
+.xmind-progress-75 { width: 75% !important; }
+.xmind-progress-80 { width: 80% !important; }
+.xmind-progress-85 { width: 85% !important; }
+.xmind-progress-90 { width: 90% !important; }
+.xmind-progress-95 { width: 95% !important; }
 
 /* 查看器容器 - 优化为占满整个窗口 */
 .xmind-viewer-container {

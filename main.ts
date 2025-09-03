@@ -260,9 +260,11 @@ export default class XMindLinkerPlugin extends Plugin {
       }
     });
     
-    // 使用 CSS 自定义属性设置动态样式
-    img.style.setProperty('--thumbnail-max-width', `${this.settings.thumbnailMaxWidth}px`);
-    img.style.setProperty('--thumbnail-max-height', `${this.settings.thumbnailMaxHeight}px`);
+    // 根据设置的尺寸选择合适的CSS类
+    const customSizeClass = this.getThumbnailCustomSizeClass();
+    if (customSizeClass) {
+      img.classList.add(customSizeClass);
+    }
 
     // 添加质量指示器
     if (this.settings.thumbnailQuality !== 'medium') {
@@ -351,6 +353,17 @@ export default class XMindLinkerPlugin extends Plugin {
     if (width <= 300) return 'small';
     if (width <= 500) return 'medium';
     return 'large';
+  }
+
+  /**
+   * 获取缩略图自定义尺寸CSS类
+   */
+  private getThumbnailCustomSizeClass(): string {
+    const width = this.settings.thumbnailMaxWidth;
+    if (width <= 200) return 'size-custom-small';
+    if (width <= 300) return 'size-custom-medium';
+    if (width <= 400) return 'size-custom-large';
+    return 'size-custom-extra-large';
   }
 
 

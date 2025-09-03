@@ -168,11 +168,14 @@ export class XMindView extends ItemView {
     this.eventHandlers = {};
     
     // 清理可能的 window 全局引用
-    if (typeof window !== 'undefined' && (window as any).XMindEmbedViewer) {
-      try {
-        delete (window as any).XMindEmbedViewer;
-      } catch (error) {
-        // 在某些环境下可能无法删除，静默处理
+    if (typeof window !== 'undefined') {
+      const obsidianWindow = window as ObsidianWindow;
+      if (obsidianWindow.XMindEmbedViewer) {
+        try {
+          delete obsidianWindow.XMindEmbedViewer;
+        } catch (error) {
+          // 在某些环境下可能无法删除，静默处理
+        }
       }
     }
   }
@@ -340,14 +343,18 @@ export class XMindView extends ItemView {
   private updateLoadingProgress(message: string, progress: number): void {
     this.loadingProgress = progress;
     const loadingEl = this.contentContainer.querySelector('.xmind-loading-text');
-    const progressBar = this.contentContainer.querySelector('.xmind-loading-progress-bar');
+    const progressBar = this.contentContainer.querySelector('.xmind-loading-progress-bar') as HTMLElement;
     
     if (loadingEl) {
       loadingEl.textContent = message;
     }
     
     if (progressBar) {
-      (progressBar as HTMLElement).style.setProperty('--progress-width', `${progress}%`);
+      // 移除所有进度类
+      progressBar.className = progressBar.className.replace(/xmind-progress-\d+/g, '');
+      // 添加对应的进度类
+      const progressClass = `xmind-progress-${Math.round(progress / 5) * 5}`;
+      progressBar.classList.add(progressClass);
     }
 
     // 根据进度更新提示信息
@@ -436,13 +443,12 @@ export class XMindView extends ItemView {
       toolbarSelectors.forEach(selector => {
         const elements = container.querySelectorAll(selector);
         elements.forEach((element: HTMLElement) => {
-          if (element.style.bottom || element.style.position === 'fixed' || element.style.position === 'absolute') {
-            if (element.style.position === 'fixed') {
-              element.classList.add('xmind-toolbar-positioned');
-            } else {
-              element.classList.add('xmind-toolbar-absolute');
-            }
-
+          // 检查是否可能是工具栏元素，避免直接访问 style 属性
+          if (element.className.includes('toolbar') || 
+              element.className.includes('control') || 
+              element.hasAttribute('style')) {
+            // 添加工具栏调整类，让CSS处理定位
+            element.classList.add('xmind-toolbar-adjusted');
           }
         });
       });
@@ -453,15 +459,12 @@ export class XMindView extends ItemView {
           mutation.addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as HTMLElement;
-              if (element.style && (element.style.position === 'fixed' || element.style.position === 'absolute')) {
-                if (element.style.bottom) {
-                  if (element.style.position === 'fixed') {
-                    element.classList.add('xmind-toolbar-positioned');
-                  } else {
-                    element.classList.add('xmind-toolbar-absolute');
-                  }
-
-                }
+              // 检查是否可能是工具栏元素，避免直接访问样式属性
+              if (element.className.includes('toolbar') || 
+                  element.className.includes('control') || 
+                  element.hasAttribute('style')) {
+                // 添加工具栏调整类，让CSS处理定位
+                element.classList.add('xmind-toolbar-adjusted');
               }
             }
           });
