@@ -115,6 +115,28 @@ bun run build
 bun test
 ```
 
+### 版本发布流程
+
+为需要发布新版本的维护者提供：
+
+1. **创建并推送标签**（触发自动构建）：
+   ```bash
+   git tag v1.1.0
+   git push origin v1.1.0
+   ```
+
+2. **等待 GitHub Actions** 完成构建并创建 release
+
+3. **更新仓库清单文件**，使用提供的脚本：
+   ```bash
+   ./update-version.sh 1.1.0
+   ```
+
+此流程确保：
+- 自动构建并发布版本
+- 更新仓库的 `manifest.json` 以兼容 Obsidian 插件商店
+- 用户可以通过 Obsidian 的插件管理器下载更新
+
 ### 调试技巧
 
 1. 在 Obsidian 中启用开发者工具：`Ctrl+Shift+I`

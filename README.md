@@ -131,6 +131,28 @@ bun run build
 bun test
 ```
 
+### Release Process
+
+For maintainers who need to publish new versions:
+
+1. **Create and push tag** (triggers automatic build):
+   ```bash
+   git tag v1.1.0
+   git push origin v1.1.0
+   ```
+
+2. **Wait for GitHub Actions** to complete the build and create the release
+
+3. **Update repository manifest** using the provided script:
+   ```bash
+   ./update-version.sh 1.1.0
+   ```
+
+This process ensures that:
+- The release is automatically built and published
+- The repository's `manifest.json` is updated for Obsidian Plugin Store compatibility
+- Users can download updates through Obsidian's plugin manager
+
 ### Debugging Tips
 
 1. Enable developer tools in Obsidian: `Ctrl+Shift+I`
