@@ -1,11 +1,11 @@
 {
-	"id": "xmind-linker",
-	"name": "XMind Linker",
-	"version": "1.0.0",
-	"minAppVersion": "1.8.0",
-	"description": "View XMind files in your vault and connect to XMind software for editing.",
-	"author": "Leafney",
-	"authorUrl": "https://github.com/leafney",
-	"fundingUrl": "https://buymeacoffee.com/leafney",
-	"isDesktopOnly": true
+  "id": "xmind-linker",
+  "name": "XMind Linker",
+  "version": "1.3.3",
+  "minAppVersion": "1.8.0",
+  "description": "View XMind files in your vault and connect to XMind software for editing.",
+  "author": "Leafney",
+  "authorUrl": "https://github.com/leafney",
+  "fundingUrl": "https://buymeacoffee.com/leafney",
+  "isDesktopOnly": true
 }
