@@ -137,8 +137,9 @@ For maintainers who need to publish new versions:
 
 1. **Create and push tag** (triggers automatic build):
    ```bash
-   git tag v1.1.0
-   git push origin v1.1.0
+   # 推荐使用不带 v 前缀的标签格式（符合 Obsidian 官方要求）
+   git tag 1.1.0
+   git push origin 1.1.0
    ```
 
 2. **Wait for GitHub Actions** to complete the build and create the release
