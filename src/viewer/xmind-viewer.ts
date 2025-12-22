@@ -717,10 +717,7 @@ export class XMindView extends ItemView {
     
     try {
       const adapter = this.app.vault.adapter as unknown as ObsidianVaultAdapter;
-      const filePath = adapter.path.join(
-        adapter.basePath, 
-        this.xmindFile.path
-      );
+      const filePath = (this.app.vault.adapter as any).getFullPath(this.xmindFile.path);
       
       // 检测XMind应用
       const xmindApp = await SystemUtils.detectXMindApp();
