@@ -242,22 +242,16 @@ export class XMindView extends ItemView {
       // 更新窗口标题
       this.updateTitle();
 
-      // 读取文件
-      this.updateLoadingProgress(i18n.t('viewer.loadingFile'), 20);
-      const buffer = await this.app.vault.adapter.readBinary(file.path);
-
+      // 并行执行：读取文件 和 加载查看器库，显著提升加载速度
+      this.updateLoadingProgress(i18n.t('viewer.loadingFile'), 30);
       
-      // 验证文件
-      this.updateLoadingProgress(i18n.t('viewer.progress.validating'), 40);
-      if (!(await XMindParser.isValidXMindFile(buffer))) {
-        throw new Error(i18n.t('errors.invalidXMindFile'));
-      }
-      // 等待查看器库加载
-      this.updateLoadingProgress(i18n.t('viewer.progress.loadingViewer'), 60);
-      const XMindEmbedViewerLib = await this.getXMindEmbedViewer();
+      const [buffer, XMindEmbedViewerLib] = await Promise.all([
+        this.app.vault.adapter.readBinary(file.path),
+        this.getXMindEmbedViewer()
+      ]);
       
       // 创建查看器容器（不清空 contentContainer，因为它包含 loading 界面）
-      this.updateLoadingProgress(i18n.t('viewer.progress.initializing'), 80);
+      this.updateLoadingProgress(i18n.t('viewer.progress.initializing'), 70);
       
       // 创建隐藏的 viewer 容器
       const viewerContainer = this.contentContainer.createDiv({

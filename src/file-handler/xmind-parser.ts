@@ -34,9 +34,9 @@ export class XMindParser {
    * 解析内容文件
    */
   private async parseContent(zip: JSZip): Promise<string> {
-    const contentFile = zip.file('content.xml');
+    const contentFile = zip.file('content.json') || zip.file('content.xml');
     if (!contentFile) {
-      throw new Error('找不到 content.xml 文件');
+      throw new Error('找不到 content.json 或 content.xml 文件');
     }
     
     return await contentFile.async('text');
@@ -60,23 +60,27 @@ export class XMindParser {
    * 解析工作表信息
    */
   private async parseSheets(zip: JSZip): Promise<XMindSheet[]> {
-    const contentFile = zip.file('content.xml');
-    if (!contentFile) {
+    const jsonFile = zip.file('content.json');
+    if (jsonFile) {
+      const jsonContent = await jsonFile.async('text');
+      const sheetsData = JSON.parse(jsonContent); // Let it throw if invalid
+      if (!Array.isArray(sheetsData)) {
+        throw new Error('content.json is not a valid sheet array.');
+      }
+      return sheetsData.map((sheet: any) => ({
+        id: sheet.id,
+        title: sheet.title,
+        rootTopic: sheet.rootTopic || null // Handle missing rootTopic gracefully
+      }));
+    }
+
+    const xmlFile = zip.file('content.xml');
+    if (xmlFile) {
+      // XML parsing is not implemented. Return empty array instead of default sheet.
       return [];
     }
     
-    const contentXml = await contentFile.async('text');
-    
-    // 这里应该解析 XML 内容，提取工作表信息
-    // 为了简化，我们返回一个默认的工作表
-    return [{
-      id: 'default',
-      title: '默认工作表',
-      rootTopic: {
-        id: 'root',
-        title: '中心主题'
-      }
-    }];
+    return [];
   }
 
   /**
@@ -85,7 +89,7 @@ export class XMindParser {
   static async isValidXMindFile(buffer: ArrayBuffer): Promise<boolean> {
     try {
       const zip = await JSZip.loadAsync(buffer);
-      return zip.file('content.xml') !== null;
+      return zip.file('content.xml') !== null || zip.file('content.json') !== null;
     } catch {
       return false;
     }

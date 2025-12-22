@@ -358,7 +358,7 @@
   flex: 1;
 }
 
-/* 确保 XMind 内容占满整个容器，但避免与工具栏重叠 */
+/* 确保 XMind 内容占满整个容器 */
 .xmind-viewer-content-inner iframe,
 .xmind-viewer-content-inner canvas,
 .xmind-viewer-content-inner svg,
@@ -367,37 +367,14 @@
   height: 100% !important;
   border: none !important;
   display: block !important;
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
 }
 
-/* 调整 XMind 内置工具栏的位置，避免与 Obsidian 底部菜单冲突 */
-.xmind-viewer-content-inner .xmind-embed-viewer .toolbar,
-.xmind-viewer-content-inner .xmind-embed-viewer .controls,
-.xmind-viewer-content-inner [class*="toolbar"],
-.xmind-viewer-content-inner [class*="control"],
-.xmind-viewer-content-inner [style*="position: fixed"],
-.xmind-viewer-content-inner [style*="bottom"] {
-  bottom: 80px !important; /* 为底部工具栏和 Obsidian 菜单留出更多空间 */
-  z-index: 999 !important;
-}
-
-/* 更广泛的 XMind 内置工具栏样式调整 */
-.xmind-viewer-content-inner iframe {
-  margin-bottom: 20px !important;
-}
-
-/* 针对可能的固定定位元素 */
-.xmind-viewer-content-inner * {
-  --bottom-offset: 80px;
-}
-
-/* 移除可能的边距和填充 */
-.xmind-viewer-content-inner * {
+/* 移除可能导致布局混乱的全局强制重置 */
+/* .xmind-viewer-content-inner * {
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
-}
+} */
 
 /* 加载状态 */
 .xmind-loading {
