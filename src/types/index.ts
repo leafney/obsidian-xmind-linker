@@ -118,6 +118,7 @@ export interface ObsidianVaultAdapter {
     join: (...paths: string[]) => string;
   };
   basePath: string;
+  getFullPath?: (path: string) => string;
   readBinary: (path: string) => Promise<ArrayBuffer>;
   getResourcePath: (path: string) => string;
 }

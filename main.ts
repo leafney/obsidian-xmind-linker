@@ -3,6 +3,7 @@ import { XMindView, XMIND_VIEW_TYPE } from './src/viewer/xmind-viewer';
 import { XMindLinkerSettingTab, DEFAULT_SETTINGS } from './src/core/settings';
 import { ThumbnailExtractor } from './src/file-handler/thumbnail-extractor';
 import { i18n } from './src/core/i18n';
+import { SystemUtils } from './src/utils/system-utils';
 import type { XMindViewerSettings, ObsidianVaultAdapter } from './src/types';
 
 export default class XMindLinkerPlugin extends Plugin {
@@ -567,13 +568,10 @@ export default class XMindLinkerPlugin extends Plugin {
   private async openInSystem(file: TFile): Promise<void> {
     try {
       const adapter = this.app.vault.adapter as unknown as ObsidianVaultAdapter;
-      const filePath = adapter.path.join(
-        adapter.basePath, 
-        file.path
-      );
-      
+      const { vaultRelativePath } = SystemUtils.resolveFileOpenPaths(adapter, file.path);
+
       // 使用 Obsidian API 打开文件（跨平台兼容）
-      await this.app.openWithDefaultApp(filePath);
+      await this.app.openWithDefaultApp(vaultRelativePath);
       
       // 成功打开，显示成功通知
       new Notice(i18n.t('messages.systemOpenSuccess'), 3000);

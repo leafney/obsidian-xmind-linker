@@ -711,7 +711,7 @@ export class XMindView extends ItemView {
     
     try {
       const adapter = this.app.vault.adapter as unknown as ObsidianVaultAdapter;
-      const filePath = (this.app.vault.adapter as any).getFullPath(this.xmindFile.path);
+      const { absolutePath, vaultRelativePath } = SystemUtils.resolveFileOpenPaths(adapter, this.xmindFile.path);
       
       // 检测XMind应用
       const xmindApp = await SystemUtils.detectXMindApp();
@@ -726,7 +726,7 @@ export class XMindView extends ItemView {
         const openingNotice = new Notice(i18n.t('messages.openingWithXMind'), 0);
         
         try {
-          const success = await SystemUtils.openWithXMind(filePath);
+          const success = await SystemUtils.openWithXMind(absolutePath);
           openingNotice.hide();
           
           if (success) {
@@ -747,7 +747,7 @@ export class XMindView extends ItemView {
       
       // 使用系统默认应用作为备选方案
       new Notice(i18n.t('messages.openingWithSystemApp'), 2000);
-      await this.app.openWithDefaultApp(filePath);
+      await this.app.openWithDefaultApp(vaultRelativePath);
       
       // 成功打开，显示成功通知
       new Notice(i18n.t('messages.systemOpenSuccess'), 3000);

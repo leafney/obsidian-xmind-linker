@@ -91,10 +91,62 @@ export interface XMindAppInfo {
   executablePath?: string;
 }
 
+interface VaultPathAdapterLike {
+  basePath: string;
+  path: {
+    join: (...paths: string[]) => string;
+  };
+  getFullPath?: (path: string) => string;
+}
+
 /**
  * 系统检测和XMind应用管理工具
  */
 export class SystemUtils {
+  /**
+   * 解析系统打开所需路径：
+   * - absolutePath: 用于直接调用外部程序（如 XMind）
+   * - vaultRelativePath: 用于 Obsidian 的 openWithDefaultApp
+   */
+  static resolveFileOpenPaths(adapter: VaultPathAdapterLike, filePath: string): { absolutePath: string; vaultRelativePath: string } {
+    const isAbsolute = this.isAbsolutePath(filePath);
+    const vaultRelativePath = this.toVaultRelativePath(filePath, adapter.basePath);
+    const absolutePath = isAbsolute
+      ? filePath
+      : (adapter.getFullPath ? adapter.getFullPath(vaultRelativePath) : adapter.path.join(adapter.basePath, vaultRelativePath));
+
+    return { absolutePath, vaultRelativePath };
+  }
+
+  private static isAbsolutePath(filePath: string): boolean {
+    return /^(?:[a-zA-Z]:[\\/]|\\\\|\/)/.test(filePath);
+  }
+
+  private static normalizePathForCompare(filePath: string): string {
+    return filePath.replace(/\\/g, '/').replace(/\/+$/, '');
+  }
+
+  private static toVaultRelativePath(filePath: string, basePath: string): string {
+    if (!this.isAbsolutePath(filePath)) {
+      return filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+    }
+
+    const normalizedFile = this.normalizePathForCompare(filePath);
+    const normalizedBase = this.normalizePathForCompare(basePath);
+
+    if (normalizedBase) {
+      const fileForCompare = Platform.isWin ? normalizedFile.toLowerCase() : normalizedFile;
+      const baseForCompare = Platform.isWin ? normalizedBase.toLowerCase() : normalizedBase;
+      const basePrefix = `${baseForCompare}/`;
+
+      if (fileForCompare.startsWith(basePrefix)) {
+        return normalizedFile.slice(normalizedBase.length + 1);
+      }
+    }
+
+    // 兜底：无法可靠转换时，返回原路径规范化结果
+    return filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+  }
   
   /**
    * 获取系统信息
